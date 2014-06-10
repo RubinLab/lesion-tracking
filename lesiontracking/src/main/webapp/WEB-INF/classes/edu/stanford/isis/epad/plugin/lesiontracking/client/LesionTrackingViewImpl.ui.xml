@@ -1,0 +1,61 @@
+<ui:UiBinder xmlns:ui='urn:ui:com.google.gwt.uibinder'
+xmlns:g='urn:import:com.google.gwt.user.client.ui'
+xmlns:r='urn:import:edu.stanford.isis.epad.plugin.lesiontracking.client.chart'
+xmlns:m='urn:import:gwtupload.client'>
+
+<ui:style src="LesionTrackingViewImpl.css"/>
+
+    <g:HTMLPanel>
+        <g:HTMLPanel styleName='{style.recistHTMLPanel}'>
+            <div class='{style.containingBox}'>
+                <div class='{style.fL} {style.innerColumnLeft}'>
+                    <span class='{style.label}'>Select Patient:</span>
+                    <g:ListBox ui:field='patientNamesListBox' styleName='{style.listBox}' visibleItemCount="3"  multipleSelect='false' />
+                    <!-- span class='{style.label}'>Select Study UID:</span>
+                    <g:ListBox ui:field='studiesListBox' styleName='{style.listBox}' visibleItemCount="3"  multipleSelect='false' / -->
+                    <!-- span class='{style.label}'>Select Series UID:</span>
+                    <g:ListBox ui:field='seriesListBox' styleName='{style.listBox}' visibleItemCount="3"  multipleSelect='false' / -->
+                    <span class='{style.label}'>List of Annotations:</span>
+                    <g:ListBox ui:field='annotationsListBox' styleName='{style.listBox}' visibleItemCount="3"  multipleSelect='false' enabled='false' />
+                    <span class='{style.label}'>Select Metric(s):</span>
+                    <g:ListBox ui:field='metricsListBox' styleName='{style.listBox}' visibleItemCount="3"  multipleSelect='true' />
+                </div>
+                <div class='{style.fR} {style.innerColumnRight}'>
+                    <div class='{style.fL} {style.innerColumnOfRightColumn}'>
+                        <span class='{style.label}'>RECIST Table</span>
+                        <div><g:Button ui:field='downloadRECISTTableAsImageButton' visible='false'>Download as Image</g:Button></div>
+                        <!-- g:ScrollPanel styleName='{style.recistScrollPanel}' -->
+                            <g:FlexTable ui:field='recistFlexTable' styleName='{style.recistFlexTable}'/>
+                        <!-- /g:ScrollPanel-->
+                    </div>
+                    <div class='{style.fR} {style.innerColumnOfRightColumn}'>
+                        <div class='{style.fL} {style.recistChart}'>
+                            <span class='{style.label}'>RECIST Chart</span>
+                            <div><g:Button ui:field='downloadRECISTChartAsImageButton' visible='false'>Download as Image</g:Button></div>
+                            <!-- g:ScrollPanel styleName='{style.recistScrollPanel}' -->
+                                <g:FlexTable ui:field='recistChartsFlexTable'></g:FlexTable>
+                            <!-- /g:ScrollPanel-->
+                        </div>
+                    </div>
+                </div>
+                <div class='{style.fR} {style.innerColumnRight}'>
+                    <div class='{style.radiologyImagesDiv}'>
+                        <span class='{style.label}'>Radiology Images</span>
+                        <g:FlexTable ui:field='radiologyImagesFlexTable'>
+
+                        </g:FlexTable>
+                    </div>
+                </div>
+            </div>
+        </g:HTMLPanel>
+
+        <g:HTMLPanel styleName='{style.annotationUploadHTMLPanel}' visible='false'>
+            <div class='{style.containingBox}'>
+                <div class='{style.fL}'>
+                    <span class='{style.label}'>Upload Annotation File in XML format</span>
+                    <g:FlowPanel ui:field='annotationUploadFlowPanel'></g:FlowPanel>
+                </div>
+            </div>
+        </g:HTMLPanel>
+    </g:HTMLPanel>
+</ui:UiBinder>
