@@ -3,12 +3,15 @@
 	<inherits name='com.google.gwt.user.User' />
 	<inherits name='com.google.gwt.visualization.Visualization' />
 	<inherits name="gwtupload.GWTUpload" />
+	
+	<inherits name="com.google.gwt.http.HTTP" />
+	<inherits name="com.google.gwt.logging.Logging"/>
+	
 	<stylesheet src="Upload.css" />
 	<entry-point
 		class='edu.stanford.isis.epad.plugin.lesiontracking.client.LesionTracking' />
 	<source path='client' />
 	<source path='shared' />
-
 	
 	<!-- enable super dev mode -->
  	<add-linker name="xsiframe"/>

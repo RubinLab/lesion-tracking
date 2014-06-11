@@ -11,7 +11,10 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		
+		<!-- Conflict with 2.6.1 -->
 		<gwtVersion>2.5.1</gwtVersion>
+		
 		<!-- GWT needs at least java 1.5 -->
 		<maven.compiler.source>1.7</maven.compiler.source>
 		<maven.compiler.target>1.7</maven.compiler.target>
@@ -21,9 +24,10 @@
 		<apache.httpcore.version>4.2.2</apache.httpcore.version> <!-- Using 4.2.3 causes a class compatability issue -->
 		<apache.httpmime.version>4.2.3</apache.httpmime.version>
 		<restlet.version>2.1.3</restlet.version>
-		
+
 		<!-- Version 8.+ of Jetty uses version 3+ of javax.servlet which can cause 
-			problems with the version 2.5 that appears to be needed by Restlets (REVIEW IF SOMETHING GOES WRONG AS AN IFRAME) -->
+			problems with the version 2.5 that appears to be needed by Restlets (REVIEW 
+			IF SOMETHING GOES WRONG AS AN IFRAME) -->
 		<jetty.version>7.6.5.v20120716</jetty.version>
 
 	</properties>
@@ -38,7 +42,6 @@
 			<name>Public online Restlet repository</name>
 			<url>http://maven.restlet.org</url>
 		</repository>
-
 
 		<!-- Use repository in ${project.basedir}/lib for JARs that can not be 
 			found in public Maven repositories. -->
@@ -74,6 +77,21 @@
 			<version>${gwtVersion}</version>
 			<scope>runtime</scope> <!-- changed from provided -->
 		</dependency>
+		<dependency>
+			<groupId>com.google.gwt</groupId>
+			<artifactId>gwt-codeserver</artifactId>
+			<version>${gwtVersion}</version>
+			<scope>compile</scope>
+		</dependency>
+
+		<!-- This is in a local project repository (in ./lib) because we could 
+			not find a public Maven repository containing it. -->
+		<dependency>
+			<groupId>com.google.gwt-google-apis</groupId>
+			<artifactId>gwt-visualization</artifactId>
+			<version>1.1.2</version>
+		</dependency>
+
 		<!-- dependency> <groupId>com.google.gwt.google-apis</groupId> <artifactId>gwt-visualization</artifactId> 
 			<version>1.1.2</version> </dependency -->
 		<dependency>
@@ -120,14 +138,6 @@
 			<version>2.0.0</version>
 		</dependency>
 
-		<!-- This is in a local project repository (in ./lib) because we could 
-			not find a public Maven repository containing it. -->
-		<dependency>
-			<groupId>com.google.gwt-google-apis</groupId>
-			<artifactId>gwt-visualization</artifactId>
-			<version>1.1.2</version>
-		</dependency>
-
 		<!-- Start of Apache dependencies -->
 
 		<dependency>
@@ -150,15 +160,6 @@
 
 		<!-- End of Apache dependencies -->
 
-		<dependency>
-			<groupId>com.google.gwt</groupId>
-			<artifactId>gwt-codeserver</artifactId>
-			<version>${gwtVersion}</version>
-			<scope>compile</scope>
-		</dependency>
-
-
-
 	</dependencies>
 
 	<!-- ${webappDirectory} -->
@@ -166,51 +167,40 @@
 		<outputDirectory>/src/main/webapp/WEB-INF/classes</outputDirectory>
 		<plugins>
 			<plugin>
-				<artifactId>maven-clean-plugin</artifactId>
-				<version>2.4.1</version>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>2.4</version>
 				<configuration>
-					<filesets>
-						<fileset>
-							<directory>src/main/webapp</directory>
-							<includes>
-								<include>lesiontracking/</include>
-							</includes>
-							<followSymlinks>false</followSymlinks>
-						</fileset>
-						<fileset>
-							<directory>src/main/webapp/WEB-INF</directory>
-							<includes>
-								<include>deploy/</include>
-							</includes>
-							<followSymlinks>false</followSymlinks>
-						</fileset>
-					</filesets>
+					<!-- To exclude certain files from being copied from the src/main/webapp 
+						directory to ./target -->
+					<warSourceExcludes>lesiontracking/lesiontracking.nocache.js,lesiontracking/*.cache.html,lesiontracking/*.cache.gif,lesiontracking/*.cache.png</warSourceExcludes>
+					<!-- To exclude files from being packaged into the WAR (i.e., being 
+						copied from ./target to the WAR) -->
+					<!-- <packagingExcludes>web_pad/A,web_pad/B</packagingExcludes> -->
 				</configuration>
 			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-clean-plugin</artifactId>
+				<version>2.5</version>
+			</plugin>
+
+			<!-- We need this plugin to handle GWT -->
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>gwt-maven-plugin</artifactId>
-				<version>2.2.0</version>
+				<version>${gwtVersion}</version>
 				<executions>
 					<execution>
 						<goals>
 							<goal>compile</goal>
-							<goal>test</goal>
 						</goals>
 					</execution>
 				</executions>
 				<configuration>
-					<runTarget>edu.stanford.isis.epad.plugin.lesiontracking/index.html</runTarget>
-					<hostedWebapp>${webappDirectory}</hostedWebapp>
+					<runTarget>index.html</runTarget>
 				</configuration>
-				<dependencies>
-					<dependency>
-						<groupId>com.google.gwt</groupId>
-						<artifactId>gwt-user</artifactId>
-						<version>${gwtVersion}</version>
-					</dependency>
-
-				</dependencies>
 			</plugin>
 		</plugins>
 	</build>

@@ -1,0 +1,3 @@
+# Module lesiontracking
+# RPC service class, partial path of RPC policy file
+edu.stanford.isis.epad.plugin.lesiontracking.client.LesionTrackingService, C71B281C0CC978B2BCDFB9ED6BE1552B.gwt.rpc

@@ -1,0 +1,2 @@
+serviceClass: edu.stanford.isis.epad.plugin.lesiontracking.client.LesionTrackingService
+path: C71B281C0CC978B2BCDFB9ED6BE1552B.gwt.rpc

@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- edited with XMLSpy v2009 sp1 (http://www.altova.com) by Daniel Rubin (private) -->
+<ImageAnnotation xmlns="gme://caCORE.caCORE/3.2/edu.northwestern.radiology.AIM" aimVersion="AIM.1.0" comment="" dateTime="2010-10-25T09:48:12" cagridId="0" name="L02" uniqueIdentifier="L02" codeMeaning="" codeValue="" codingSchemeDesignator="DCM" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="gme://caCORE.caCORE/3.2/edu.northwestern.radiology.AIM AIM_v3_rv11_XML.xsd">
+	<calculationCollection>
+	<Calculation description="Diameter" cagridId="0" mathML="" codeMeaning="" codeValue="" codingSchemeDesignator="SRT" codingSchemeVersion="" uid="">
+  <referencedCalculationCollection/>
+  <calculationResultCollection>
+    <CalculationResult cagridId="0" numberOfDimensions="1" type="Scalar" unitOfMeasure="mm">
+       <calculationDataCollection>
+         <CalculationData cagridId="0" value="39">
+           <coordinateCollection><Coordinate dimensionIndex="0" cagridId="0" position="0"/></coordinateCollection>
+         </CalculationData>
+       </calculationDataCollection>
+       <dimensionCollection>
+         <Dimension cagridId="0" index="0" label="Diameter=39 mm" size="1"/>
+       </dimensionCollection>
+     </CalculationResult>
+   </calculationResultCollection>
+</Calculation>
+<Calculation description="Circumference" cagridId="0" mathML="" codeMeaning="" codeValue="" codingSchemeDesignator="SRT" codingSchemeVersion="" uid="">
+  <referencedCalculationCollection/>
+  <calculationResultCollection>
+    <CalculationResult cagridId="0" numberOfDimensions="1" type="Scalar" unitOfMeasure="mm">
+       <calculationDataCollection>
+         <CalculationData cagridId="0" value="180">
+           <coordinateCollection><Coordinate dimensionIndex="0" cagridId="0" position="0"/></coordinateCollection>
+         </CalculationData>
+       </calculationDataCollection>
+       <dimensionCollection>
+         <Dimension cagridId="0" index="0" label="Circumference=180 mm" size="1"/>
+       </dimensionCollection>
+     </CalculationResult>
+   </calculationResultCollection>
+</Calculation>
+<Calculation description="Cross-section area" cagridId="0" mathML="" codeMeaning="" codeValue="" codingSchemeDesignator="SRT" codingSchemeVersion="" uid="">
+  <referencedCalculationCollection/>
+  <calculationResultCollection>
+    <CalculationResult cagridId="0" numberOfDimensions="1" type="Scalar" unitOfMeasure="mm2">
+       <calculationDataCollection>
+         <CalculationData cagridId="0" value="1033">
+           <coordinateCollection><Coordinate dimensionIndex="0" cagridId="0" position="0"/></coordinateCollection>
+         </CalculationData>
+       </calculationDataCollection>
+       <dimensionCollection>
+         <Dimension cagridId="0" index="0" label="Area of cross-section=1033 mm2" size="1"/>
+       </dimensionCollection>
+     </CalculationResult>
+   </calculationResultCollection>
+</Calculation>
+<Calculation description="Mean density" cagridId="0" mathML="" codeMeaning="" codeValue="" codingSchemeDesignator="SRT" codingSchemeVersion="" uid="">
+  <referencedCalculationCollection/>
+  <calculationResultCollection>
+    <CalculationResult cagridId="0" numberOfDimensions="1" type="Scalar" unitOfMeasure="HU">
+       <calculationDataCollection>
+         <CalculationData cagridId="0" value="75">
+           <coordinateCollection><Coordinate dimensionIndex="0" cagridId="0" position="0"/></coordinateCollection>
+         </CalculationData>
+       </calculationDataCollection>
+       <dimensionCollection>
+         <Dimension cagridId="0" index="0" label="Mean of density=75 HU" size="1"/>
+       </dimensionCollection>
+     </CalculationResult>
+   </calculationResultCollection>
+</Calculation>
+<Calculation description="Stdev density" cagridId="0" mathML="" codeMeaning="" codeValue="" codingSchemeDesignator="SRT" codingSchemeVersion="" uid="">
+  <referencedCalculationCollection/>
+  <calculationResultCollection>
+    <CalculationResult cagridId="0" numberOfDimensions="1" type="Scalar" unitOfMeasure="HU">
+       <calculationDataCollection>
+         <CalculationData cagridId="0" value="18">
+           <coordinateCollection><Coordinate dimensionIndex="0" cagridId="0" position="0"/></coordinateCollection>
+         </CalculationData>
+       </calculationDataCollection>
+       <dimensionCollection>
+         <Dimension cagridId="0" index="0" label="Stdev of density=18 HU" size="1"/>
+       </dimensionCollection>
+     </CalculationResult>
+   </calculationResultCollection>
+</Calculation>
+</calculationCollection>
+	<user>
+		<User name="Tanya" cagridId="0" loginName="tanya" numberWithinRoleOfClinicalTrial="1" roleInTrial=""/>
+	</user>
+	<equipment>
+		<Equipment cagridId="0" manufacturerName=" " manufacturerModelName="" softwareVersion=""/>
+	</equipment>
+	<anatomicEntityCollection>
+		<AnatomicEntity codeMeaning="pancreas" codeValue="	http://www.radlex.org/RID/RID170" codingSchemeDesignator="RADLEX" cagridId="0" label="">    </AnatomicEntity>
+	</anatomicEntityCollection>
+	<imagingObservationCollection>
+		<ImagingObservation codeMeaning="target" codeValue="R100" codingSchemeDesignator="RECIST" comment="" cagridId="0" label="11.00 cm">
+			<imagingObservationCharacteristicCollection>
+				<ImagingObservationCharacteristic codeMeaning="" codeValue="" codingSchemeDesignator="" comment="" cagridId="0" label="11.00 cm"/>
+			</imagingObservationCharacteristicCollection>
+		</ImagingObservation>
+	</imagingObservationCollection>
+	<imageReferenceCollection>
+		<ImageReference cagridId="0" xsi:type="DICOMImageReference">
+			<imageStudy>
+				<ImageStudy cagridId="0" instanceUID="1.2.752.24.7.19011385.453825" startDate="2008-04-03T15:14:21" startTime="15:14:21">
+					<imageSeries>
+						<ImageSeries cagridId="0" instanceUID="1.2.840.113619.2.22.287.1.18595.20041202.251421">
+							<imageCollection>
+								<Image cagridId="0" sopClassUID="" sopInstanceUID="1.2.840.113704.1.111.3820.1207241492.1629"/>
+							</imageCollection>
+						</ImageSeries>
+					</imageSeries>
+				</ImageStudy>
+			</imageStudy>
+		</ImageReference>
+	</imageReferenceCollection>
+	<geometricShapeCollection>
+		<GeometricShape cagridId="0" includeFlag="false" lineColor="" lineOpacity="" lineStyle="" lineThickness="" shapeIdentifier="0" xsi:type="Polyline">
+			<spatialCoordinateCollection>
+				<SpatialCoordinate coordinateIndex="0" cagridId="0" imageReferenceUID="1.2.840.113704.1.111.3820.1207241492.1629" referencedFrameNumber="0" x="382" xsi:type="TwoDimensionSpatialCoordinate" y="274"/>
+				<SpatialCoordinate coordinateIndex="1" cagridId="0" imageReferenceUID="1.2.840.113704.1.111.3820.1207241492.1629" referencedFrameNumber="0" x="324" xsi:type="TwoDimensionSpatialCoordinate" y="309"/>
+			</spatialCoordinateCollection>
+
+		</GeometricShape>
+		<GeometricShape cagridId="0" includeFlag="false" lineColor="" lineOpacity="" lineStyle="" lineThickness="" shapeIdentifier="1" xsi:type="Polyline">
+			<spatialCoordinateCollection>
+				<SpatialCoordinate coordinateIndex="0" cagridId="0" imageReferenceUID="1.2.840.113704.1.111.3820.1207241492.1629" referencedFrameNumber="0" x="104" xsi:type="TwoDimensionSpatialCoordinate" y="284"/>
+				<SpatialCoordinate coordinateIndex="1" cagridId="0" imageReferenceUID="1.2.840.113704.1.111.3820.1207241492.1629" referencedFrameNumber="0" x="124" xsi:type="TwoDimensionSpatialCoordinate" y="250"/>
+			</spatialCoordinateCollection>
+
+		</GeometricShape>
+		<GeometricShape cagridId="0" includeFlag="false" lineColor="" lineOpacity="" lineStyle="" lineThickness="" shapeIdentifier="2" xsi:type="Polyline">
+			<spatialCoordinateCollection>
+				<SpatialCoordinate coordinateIndex="0" cagridId="0" imageReferenceUID="1.2.840.113704.1.111.3820.1207241492.1629" referencedFrameNumber="0" x="161" xsi:type="TwoDimensionSpatialCoordinate" y="226"/>
+				<SpatialCoordinate coordinateIndex="1" cagridId="0" imageReferenceUID="1.2.840.113704.1.111.3820.1207241492.1629" referencedFrameNumber="0" x="166" xsi:type="TwoDimensionSpatialCoordinate" y="208"/>
+			</spatialCoordinateCollection>
+
+		</GeometricShape>
+	</geometricShapeCollection>
+	<person>
+		<Person birthDate="2001-01-01T00:00:00" cagridId="0" name="Pat,166" id="100066" sex="F"/>
+	</person>
+	<textAnnotationCollection/>
+</ImageAnnotation>

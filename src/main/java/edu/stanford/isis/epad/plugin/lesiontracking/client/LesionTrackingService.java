@@ -17,5 +17,6 @@ public interface LesionTrackingService extends RemoteService
     public List<ImageAnnotation> getImageAnnotationsForPatient(String patientName) throws Exception;
     public String downloadRECISTTableImage(CalculationResult cr);
     public String downloadRECISTChartImage(CalculationResult cr);
-//	public String setClient(String session);
+	public String setClient(String username, String session);
+	public String requestSessionString();
 }

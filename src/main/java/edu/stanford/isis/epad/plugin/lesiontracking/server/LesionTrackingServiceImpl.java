@@ -15,6 +15,8 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
@@ -27,14 +29,21 @@ import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
 import org.apache.http.StatusLine;
 import org.apache.http.client.CookieStore;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.cookie.BasicClientCookie;
+import org.apache.http.message.BasicNameValuePair;
 import org.restlet.data.Status;
+import org.restlet.resource.ResourceException;
 import org.restlet.resource.ServerResource;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -63,25 +72,72 @@ public class LesionTrackingServiceImpl extends RemoteServiceServlet implements L
 	public static final String LIST = "list",
 							   VALUES = "value",
 							   PERSON = "Person",
-							   IMAGE_ANNOTATION = "ImageAnnotation",
-							   SESSION = "A956C71DF96D6448B6E996C6750DD84B";
-	DefaultHttpClient client;
-//	private String session;
+							   IMAGE_ANNOTATION = "ImageAnnotation";
+	private DefaultHttpClient client;
+	private String username;
 
 	public static void main(String[] args) throws Exception
 	{
-
+		
 	}
 	
-	public String setClient(String session)
+	@Override
+	public String setClient(String username, String session)
 	{
 		this.client = new DefaultHttpClient();
-//		this.session = session;
-//		this.session = this.getCookies().getValues("JSESSIONID");
-		System.out.println(session);
+		this.username = username;
 		setCookie(client, session);
 		return "success";
 	}
+	
+	@Override
+    public String getPatientNames() throws Exception
+    {
+		// here's the result
+		String result = "";
+		
+		String request = "http://epad-dev2.stanford.edu:8080/epad/v2/projects/unassigned/subjects/?username=" + username;
+		
+		HttpGet get = new HttpGet(request);
+
+		get.addHeader("accept", "application/json");
+		HttpResponse response;
+		try {
+			// make the call
+			response = client.execute(get);
+			if (response != null) {
+				// reflect the status line
+				//StatusLine statusLine = response.getStatusLine();
+				
+				HttpEntity entity = response.getEntity();
+				if (entity != null) {
+					InputStream instream = entity.getContent();
+
+					BufferedReader rd = new BufferedReader(new InputStreamReader(
+							response.getEntity().getContent()));
+					String line;
+					while ((line = rd.readLine()) != null) {
+						result = line;
+					}
+					instream.close();
+				}
+				System.out.println("Result Patient Name: " + result);
+
+			} else {
+				System.out.println("Result Patient Name: Empty");
+			}
+		
+		} catch (Exception e) {
+			System.out.println(e);
+		}
+		
+		List<String> patientNames = new ArrayList<String>();
+		patientNames.add(result);
+		
+//		System.out.println("requestSessionString: " + requestSessionString());
+		
+		return result;
+    }
 	
 	public List<ImageAnnotation> getImageAnnotationsForPatient(String patientId) throws Exception
 	{
@@ -117,7 +173,7 @@ public class LesionTrackingServiceImpl extends RemoteServiceServlet implements L
 				System.out.println("Result AIM: " + result);
 					
 			} else {
-				System.out.println("Empty");
+				System.out.println("Result AIM: Empty");
 			}
 		
 		} catch (Exception e) {
@@ -150,85 +206,91 @@ public class LesionTrackingServiceImpl extends RemoteServiceServlet implements L
 		return imageAnnotations;
 	}
 	
-	@Override
-    public String getPatientNames() throws Exception
-    {
-		// here's the result
-		String result = "";
-		
-//		String request = "http://epad-dev2.stanford.edu:8080/epad/v2/projects/unassigned/subjects/?username=admin";
-//		
-//		HttpGet get = new HttpGet(request);
-//
-//		get.addHeader("accept", "application/json");
-//		HttpResponse response;
-//		try {
-//			// make the call
-//			response = client.execute(get);
-//			if (response != null) {
-//				// reflect the status line
-//				//StatusLine statusLine = response.getStatusLine();
-//				
-//				HttpEntity entity = response.getEntity();
-//				if (entity != null) {
-//					InputStream instream = entity.getContent();
-//
-//					BufferedReader rd = new BufferedReader(new InputStreamReader(
-//							response.getEntity().getContent()));
-//					String line;
-//					while ((line = rd.readLine()) != null) {
-//						result = line;
-//					}
-//					instream.close();
-//				}
-//				System.out.println("Result Patient: " + result);
-//
-//			} else {
-//				System.out.println("Empty");
-//			}
-//		
-//		} catch (Exception e) {
-//			System.out.println(e);
-//		}
-//		
-//		List<String> patientNames = new ArrayList<String>();
-//		patientNames.add(result);
-		
-		return result;
-    }
-	
 	public static void setCookie(DefaultHttpClient client, String session){
 		
-		String server = "http://epad-dev2.stanford.edu:8080".replace("http://",".").replace(":8080", "");
-		String path = "/epad/";
-				
+		String server = "http://epad-dev2.stanford.edu:8080".replace("http://", ".").replace(":8080", "");
+		String path = "/epad";
+
 		CookieStore cookieStore = client.getCookieStore();
 		
 		BasicClientCookie cookie = new BasicClientCookie("JSESSIONID", session);
+		
 		cookie.setVersion(0);
-
 		cookie.setDomain(server);
 		cookie.setPath(path);
 		
 		cookieStore.addCookie(cookie); 
-		client.setCookieStore(cookieStore);		
-
-		cookieStore.addCookie(cookie);
 		client.setCookieStore(cookieStore);
 	}
     
-//	 getServletContext() needs extends RemoteServiceServlet
-    @Override
+@Override
     public String downloadRECISTTableImage(CalculationResult cr)
     {
-//        return "";
     	return RECISTTableServlet.downloadRECISTTableImage(cr, getServletContext().getRealPath("/")).getName();
     }
 
     @Override
     public String downloadRECISTChartImage(CalculationResult cr)
     {
-//    	return "";
         return RECISTChartServlet.drawSeriesGraphToFile(cr, getServletContext().getRealPath("/") + "/images/recist_chart_" + (int)Math.ceil(Math.random() * 10000) + ".jpg").getName();
     }
+    
+    @Override
+    public String requestSessionString() {
+		String username = "admin";
+		String password = "admin";
+
+		String result = null;
+
+		String authString = buildAuthorizatonString(username, password);
+		String url = "http://epad-dev2.stanford.edu:8080/epad/session/";
+
+		// get the http client and post the file
+		HttpClient httpclient = new DefaultHttpClient();
+		try {
+			HttpPost httppost = new HttpPost(url);
+
+			List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(1);
+			nameValuePairs.add(new BasicNameValuePair("username", "admin"));
+			nameValuePairs.add(new BasicNameValuePair("password", "admin"));
+			httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+			httppost.setHeader("Authorization", "Basic " + authString);
+
+			HttpResponse response = httpclient.execute(httppost);
+//			logger.info("statusLine " + response.getStatusLine().toString());
+
+			BufferedReader rd = new BufferedReader(new InputStreamReader(
+					response.getEntity().getContent()));
+			String line = "";
+			while ((line = rd.readLine()) != null) {
+				result = line;
+			}
+
+//			logger.info("login response "
+//					+ response.getStatusLine().getStatusCode());
+			if (response.getStatusLine().getStatusCode() != 200) {
+
+				result = response.getStatusLine().getReasonPhrase();
+				throw new ResourceException(response.getStatusLine()
+						.getStatusCode());
+
+			}
+		} catch (IOException e) {
+//			logger.info("Error: " + e.getMessage());
+		} finally {
+			try {
+				httpclient.getConnectionManager().shutdown();
+			} catch (Exception ignore) {
+			}
+		}
+
+		return result;
+	}
+	
+    private String buildAuthorizatonString(String username, String password) {
+		String authString = username + ":" + password;
+		byte[] authEncBytes = Base64.encodeBase64(authString.getBytes());
+		String authStringEnc = new String(authEncBytes);
+		return authStringEnc;
+	}
 }
