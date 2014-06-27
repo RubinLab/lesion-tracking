@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpResponse;
@@ -45,60 +44,29 @@ import edu.stanford.isis.epad.plugin.lesiontracking.shared.ImageAnnotation;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.SharedNumberFormat;
 import edu.stanford.isis.epad.plugin.lesiontracking.client.widget.LoginForm;
 
-
 public class LesionTracking implements EntryPoint {
-	private final LesionTrackingViewImpl lesionTrackingViewImpl = new LesionTrackingViewImpl(
-			this);
-	private LesionTrackingServiceAsync lesionTrackingServiceAsync = (LesionTrackingServiceAsync) GWT
+	private final LesionTrackingViewImpl lesionTrackingViewImpl = new LesionTrackingViewImpl(this);
+//	private final LoginForm loginForm = new LoginForm();
+	private static LesionTrackingServiceAsync lesionTrackingServiceAsync = (LesionTrackingServiceAsync) GWT
 			.create(LesionTrackingService.class);
+	private LoginForm loginForm;
 
 	private CalculationResult cr;
 	private List<ImageAnnotation> imageAnnotations;
 
-	// Logger logger = Logger.getLogger("LesionTrackingLog");
-
 	public void onModuleLoad() {
-		RootPanel.get("lesionTracking").add(lesionTrackingViewImpl.asWidget());
-		verifySession();		
-	}
+		loginForm = new LoginForm(this);
 
-	private void verifySession() {
-		String session = Cookies.getCookie("JSESSIONID");
-
-		if (session == null) {
-			lesionTrackingServiceAsync.requestSessionString(new AsyncCallback<String>() {
-				@Override
-				public void onFailure(Throwable caught) {
-					Window.alert("requestSessionString error: : " + caught.toString());
-				}
-	
-				@Override
-				public void onSuccess(String session) {
-					Cookies.setCookie("ePADLoggedinUser", "admin");
-					Cookies.setCookie("JSESSIONID", session);
-					onSetClient();
-				}
-			});
+		if (!loginForm.haveUser()) {
+			loginForm.showAndClear();
 		} else {
-			onSetClient();
+			loginForm.onSetClient();
 		}
 	}
 	
-	private void onSetClient() {
-		String username = Cookies.getCookie("ePADLoggedinUser");
-		String session = Cookies.getCookie("JSESSIONID");
-
-		lesionTrackingServiceAsync.setClient(username, session, new AsyncCallback<String>() {
-			@Override
-			public void onFailure(Throwable caught) {
-				Window.alert("setClient error: : " + caught.toString());
-			}
-
-			@Override
-			public void onSuccess(String result) {
-				onGetPatientNames();
-			}
-		});
+	public void startModule() {
+		RootPanel.get("lesionTracking").add(lesionTrackingViewImpl.asWidget());
+		onGetPatientNames();
 	}
 	
 	public void onGetPatientNames() {
@@ -193,6 +161,10 @@ public class LesionTracking implements EntryPoint {
 		 * @Override public void onSuccess(List<String> studies) {
 		 * lesionTrackingViewImpl.loadStudiesList(studies); } });
 		 */
+	}
+	
+	public static LesionTrackingServiceAsync getLesionTrackingServiceAsync() {
+		 return lesionTrackingServiceAsync;
 	}
 
 	/*

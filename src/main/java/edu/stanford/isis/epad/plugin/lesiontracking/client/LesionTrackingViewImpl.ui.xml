@@ -16,7 +16,7 @@ xmlns:m='urn:import:gwtupload.client'>
                     <!-- span class='{style.label}'>Select Series UID:</span>
                     <g:ListBox ui:field='seriesListBox' styleName='{style.listBox}' visibleItemCount="3"  multipleSelect='false' / -->
                     <span class='{style.label}'>List of Annotations:</span>
-                    <g:ListBox ui:field='annotationsListBox' styleName='{style.listBox}' visibleItemCount="3"  multipleSelect='false' enabled='false' />
+                    <g:ListBox ui:field='annotationsListBox' styleName='{style.listBox}' visibleItemCount="3"  multipleSelect='false' enabled='true' />
                     <span class='{style.label}'>Select Metric(s):</span>
                     <g:ListBox ui:field='metricsListBox' styleName='{style.listBox}' visibleItemCount="3"  multipleSelect='true' />
                 </div>

@@ -5,7 +5,6 @@
 	<inherits name="gwtupload.GWTUpload" />
 	
 	<inherits name="com.google.gwt.http.HTTP" />
-	<inherits name="com.google.gwt.logging.Logging"/>
 	
 	<stylesheet src="Upload.css" />
 	<entry-point

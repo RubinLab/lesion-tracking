@@ -1,5 +1,6 @@
 package edu.stanford.isis.epad.plugin.lesiontracking.client;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -18,5 +19,5 @@ public interface LesionTrackingService extends RemoteService
     public String downloadRECISTTableImage(CalculationResult cr);
     public String downloadRECISTChartImage(CalculationResult cr);
 	public String setClient(String username, String session);
-	public String requestSessionString();
+	public String requestSessionString(ArrayList<String> login);
 }

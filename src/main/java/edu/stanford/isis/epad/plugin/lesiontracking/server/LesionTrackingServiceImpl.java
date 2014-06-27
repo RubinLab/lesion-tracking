@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
@@ -138,7 +137,7 @@ public class LesionTrackingServiceImpl extends RemoteServiceServlet implements L
 		
 		return result;
     }
-	
+
 	public List<ImageAnnotation> getImageAnnotationsForPatient(String patientId) throws Exception
 	{
 		// here's the result
@@ -236,9 +235,12 @@ public class LesionTrackingServiceImpl extends RemoteServiceServlet implements L
     }
     
     @Override
-    public String requestSessionString() {
-		String username = "admin";
-		String password = "admin";
+    public String requestSessionString(ArrayList<String> login) {
+    	final int USERNAME = 0;
+		final int PASSWORD = 1;
+		
+		String username = login.get(USERNAME);
+		String password = login.get(PASSWORD);
 
 		String result = null;
 
@@ -257,7 +259,6 @@ public class LesionTrackingServiceImpl extends RemoteServiceServlet implements L
 			httppost.setHeader("Authorization", "Basic " + authString);
 
 			HttpResponse response = httpclient.execute(httppost);
-//			logger.info("statusLine " + response.getStatusLine().toString());
 
 			BufferedReader rd = new BufferedReader(new InputStreamReader(
 					response.getEntity().getContent()));
@@ -266,8 +267,6 @@ public class LesionTrackingServiceImpl extends RemoteServiceServlet implements L
 				result = line;
 			}
 
-//			logger.info("login response "
-//					+ response.getStatusLine().getStatusCode());
 			if (response.getStatusLine().getStatusCode() != 200) {
 
 				result = response.getStatusLine().getReasonPhrase();
@@ -276,7 +275,6 @@ public class LesionTrackingServiceImpl extends RemoteServiceServlet implements L
 
 			}
 		} catch (IOException e) {
-//			logger.info("Error: " + e.getMessage());
 		} finally {
 			try {
 				httpclient.getConnectionManager().shutdown();

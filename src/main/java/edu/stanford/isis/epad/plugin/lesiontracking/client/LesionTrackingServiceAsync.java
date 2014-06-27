@@ -1,5 +1,6 @@
 package edu.stanford.isis.epad.plugin.lesiontracking.client;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -16,5 +17,5 @@ public interface LesionTrackingServiceAsync
     public void downloadRECISTTableImage(CalculationResult cr, AsyncCallback<String> asyncCallback);
     public void downloadRECISTChartImage(CalculationResult cr, AsyncCallback<String> asyncCallback);
     public void setClient(String username, String session, AsyncCallback<String> asyncCallback);
-    public void requestSessionString(AsyncCallback<String> asyncCallback);
+    public void requestSessionString(ArrayList<String> login, AsyncCallback<String> asyncCallback);
 }

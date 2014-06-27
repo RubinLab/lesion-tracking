@@ -34,16 +34,49 @@ public class LesionTrackingViewImpl extends Composite
     private LesionTracking lesionTracking;
 
     @UiField(provided=true)
-    public ListBox patientNamesListBox = new ListBox(false),
+    public ListBox patientNamesListBox = new ListBox(),
                    //studiesListBox = new ListBox(false),
                    //seriesListBox  = new ListBox(false),
-                   annotationsListBox = new ListBox(false),
-                   metricsListBox = new ListBox(false);
+                   annotationsListBox = new ListBox(),
+                   metricsListBox = new ListBox();
 
     @UiField public FlexTable recistFlexTable, radiologyImagesFlexTable, recistChartsFlexTable;
     @UiField public Button downloadRECISTTableAsImageButton, downloadRECISTChartAsImageButton;
     @UiField public FlowPanel annotationUploadFlowPanel;
 
+    @SuppressWarnings("deprecation")
+    public LesionTrackingViewImpl(LesionTracking lesionTracking)
+    {
+        initWidget(uiBinder.createAndBindUi(this));
+        this.lesionTracking = lesionTracking;
+//        studiesListBox.setMultipleSelect(false);
+//        seriesListBox.setMultipleSelect(false);
+        annotationsListBox.setMultipleSelect(false);
+        metricsListBox.setMultipleSelect(false);
+
+
+        MultiUploader defaultUploader = new MultiUploader();
+        annotationUploadFlowPanel.add(defaultUploader);
+        defaultUploader.setServletPath("annotations");
+        System.out.println("Servlet Path: " + defaultUploader.getServletPath());
+
+        defaultUploader.addOnFinishUploadHandler(new IUploader.OnFinishUploaderHandler() {
+            public void onFinish(IUploader uploader) {
+                if (uploader.getStatus() == Status.SUCCESS) {
+
+                  // The server sends useful information to the client by default
+                  UploadedInfo info = uploader.getServerInfo();
+                  System.out.println("File name " + info.name);
+                  System.out.println("File content-type " + info.ctype);
+                  System.out.println("File size " + info.size);
+
+                  // You can send any customized message and parse it
+                  System.out.println("Server response " + uploader.getServerResponse());
+                }
+              }
+            });
+    }
+    
     @UiHandler("patientNamesListBox")
     public void onPatientNameSelected(ChangeEvent changeEvent)
     {
@@ -99,40 +132,7 @@ public class LesionTrackingViewImpl extends Composite
     public void onDownloadAsRECISTChartButtonClicked(ClickEvent clickEvent)
     {
         lesionTracking.onDownloadAsRECISTChartButtonClicked();
-    }
-
-    @SuppressWarnings("deprecation")
-    public LesionTrackingViewImpl(LesionTracking lesionTracking)
-    {
-        initWidget(uiBinder.createAndBindUi(this));
-        this.lesionTracking = lesionTracking;
-//        studiesListBox.setMultipleSelect(false);
-//        seriesListBox.setMultipleSelect(false);
-        annotationsListBox.setMultipleSelect(false);
-        metricsListBox.setMultipleSelect(false);
-
-
-        MultiUploader defaultUploader = new MultiUploader();
-        annotationUploadFlowPanel.add(defaultUploader);
-        defaultUploader.setServletPath("annotations");
-        System.out.println("Servlet Path: " + defaultUploader.getServletPath());
-
-        defaultUploader.addOnFinishUploadHandler(new IUploader.OnFinishUploaderHandler() {
-            public void onFinish(IUploader uploader) {
-                if (uploader.getStatus() == Status.SUCCESS) {
-
-                  // The server sends useful information to the client by default
-                  UploadedInfo info = uploader.getServerInfo();
-                  System.out.println("File name " + info.name);
-                  System.out.println("File content-type " + info.ctype);
-                  System.out.println("File size " + info.size);
-
-                  // You can send any customized message and parse it
-                  System.out.println("Server response " + uploader.getServerResponse());
-                }
-              }
-            });
-    }
+    }    
 
     public void setLabelText(String labelText)
     {
