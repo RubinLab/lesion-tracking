@@ -1,5 +1,6 @@
 # Ignore temporary Emacs files
 *~
+.class*
 
 #Ignore Eclipse directories
 .settings
@@ -11,5 +12,13 @@
 target/*
 .
 /target
+
+/gwt-unitCache
+src/main/gwt-unitCache
+*.cache.html
+
+.gwt/*
+
+*.cache.js
 
 *.pyc 
