@@ -1,6 +1,6 @@
 eclipse.preferences.version=1
 jarsExcludedFromWebInfLib=
-lastWarOutDir=C\:/Users/Franco/Dropbox/Stanford/LesionTrackingPlugin/target
+lastWarOutDir=C\:/Users/Franco/Dropbox/Stanford/LesionTrackingPlugin/target/lesiontracking-1.0-SNAPSHOT
 launchConfigExternalUrlPrefix=
 warSrcDir=src/main/webapp
 warSrcDirIsOutput=false
