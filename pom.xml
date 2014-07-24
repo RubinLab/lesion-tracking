@@ -13,7 +13,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		
 		<!-- Conflict with 2.6.1 -->
-		<gwtVersion>2.5.1</gwtVersion>
+		<gwt.version>2.5.1</gwt.version>
 		
 		<!-- GWT needs at least java 1.5 -->
 		<maven.compiler.source>1.7</maven.compiler.source>
@@ -68,20 +68,25 @@
 		<dependency>
 			<groupId>com.google.gwt</groupId>
 			<artifactId>gwt-user</artifactId>
-			<version>${gwtVersion}</version>
+			<version>${gwt.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.google.gwt</groupId>
 			<artifactId>gwt-servlet</artifactId>
-			<version>${gwtVersion}</version>
+			<version>${gwt.version}</version>
 			<scope>runtime</scope> <!-- changed from provided -->
 		</dependency>
 		<dependency>
 			<groupId>com.google.gwt</groupId>
 			<artifactId>gwt-codeserver</artifactId>
-			<version>${gwtVersion}</version>
+			<version>${gwt.version}</version>
 			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.google.gwt</groupId>
+			<artifactId>gwt-servlet</artifactId>
+			<version>${gwt.version}</version>
 		</dependency>
 
 		<!-- This is in a local project repository (in ./lib) because we could 
@@ -190,7 +195,7 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>gwt-maven-plugin</artifactId>
-				<version>${gwtVersion}</version>
+				<version>${gwt.version}</version>
 				<executions>
 					<execution>
 						<goals>
