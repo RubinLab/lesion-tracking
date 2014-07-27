@@ -1,37 +1,17 @@
 package edu.stanford.isis.epad.plugin.lesiontracking.client;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.logging.Level;
-
-import org.apache.commons.codec.binary.Base64;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
-import org.restlet.resource.ResourceException;
+import java.util.logging.Logger;
 
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.JsonUtils;
-import com.google.gwt.http.client.Request;
-import com.google.gwt.http.client.RequestBuilder;
-import com.google.gwt.http.client.RequestCallback;
-import com.google.gwt.http.client.RequestException;
-import com.google.gwt.http.client.Response;
-import com.google.gwt.http.client.URL;
 import com.google.gwt.i18n.client.NumberFormat;
 import com.google.gwt.user.client.Cookies;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
-import com.google.gwt.user.client.ui.RootPanel;
+import com.google.gwt.user.client.ui.Widget;
 
 import edu.stanford.isis.epad.plugin.lesiontracking.client.chart.RECISTChart;
 import edu.stanford.isis.epad.plugin.lesiontracking.client.chart.RECISTChartViewImpl;
@@ -42,59 +22,97 @@ import edu.stanford.isis.epad.plugin.lesiontracking.client.recist.RECISTCalculat
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.CalculationCollection;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.ImageAnnotation;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.SharedNumberFormat;
-import edu.stanford.isis.epad.plugin.lesiontracking.client.widget.LoginForm;
 
 public class LesionTracking implements EntryPoint {
-	private final LesionTrackingViewImpl lesionTrackingViewImpl = new LesionTrackingViewImpl(this);
-//	private final LoginForm loginForm = new LoginForm();
-	private static LesionTrackingServiceAsync lesionTrackingServiceAsync = (LesionTrackingServiceAsync) GWT
-			.create(LesionTrackingService.class);
-	private LoginForm loginForm;
+
+	private final LesionTrackingViewImpl lesionTrackingViewImpl = new LesionTrackingViewImpl(
+			this);
+
+	private static TrackingServiceAsync trackingServiceAsync = (TrackingServiceAsync) GWT
+			.create(TrackingService.class);
+
+	private static final Logger logger = Logger.getLogger("LesionTracking");
 
 	private CalculationResult cr;
 	private List<ImageAnnotation> imageAnnotations;
+	String username, session, server, projectID, patientID;
 
 	public void onModuleLoad() {
-		loginForm = new LoginForm(this);
+		logger.info("onModuleLoad");
+	}
 
-		if (!loginForm.haveUser()) {
-			loginForm.showAndClear();
-		} else {
-			loginForm.onSetClient();
-		}
-	}
-	
 	public void startModule() {
-		RootPanel.get("lesionTracking").add(lesionTrackingViewImpl.asWidget());
-		onGetPatientNames();
+		logger.info("startModule");
 	}
-	
-	public void onGetPatientNames() {
-		lesionTrackingServiceAsync.getPatientNames(new AsyncCallback<String>() {
+
+	// TODO don't need this
+	public void onSetClient() {
+		username = Cookies.getCookie("ePADLoggedinUser");
+		session = Cookies.getCookie("JSESSIONID");
+		server = GWT.getHostPageBaseURL();
+		projectID = "unassigned";
+		logger.info("onSetClient" + projectID + " " + username + " " + session
+				+ " " + server);
+
+		trackingServiceAsync.setClient(username, new AsyncCallback<String>() {
 			@Override
 			public void onFailure(Throwable caught) {
-				Window.alert("getPatientNames error: : " + caught.toString());
+				Window.alert("setClient error: : " + caught.toString());
 			}
 
 			@Override
 			public void onSuccess(String result) {
-				// parse the json string into a jsArray
-				ResultSet<PatientOverlay> resultSet = JsonUtils
-						.safeEval(result);
-
-				List<String> patientNames = new ArrayList<String>();
-				for (int i = 0; i < resultSet.length(); i++) {
-					patientNames.add(resultSet.get(i).getSubjectName() + "$"
-							+ resultSet.get(i).getSubjectID());
-				}
-
-				lesionTrackingViewImpl.loadPatientNames(patientNames);
+				Window.alert("setClient success: : " + username + " " + result);
+				startModule();
 			}
 		});
 	}
 
-	public void onPatientNameSelected(String patientName) {
-		lesionTrackingServiceAsync.getImageAnnotationsForPatient(patientName,
+	// call the server to get the list of patients in a project
+	public void onGetPatientNames() {
+		trackingServiceAsync.getPatientNames(projectID, username, session,
+				server, new AsyncCallback<String>() {
+					@Override
+					public void onFailure(Throwable caught) {
+						Window.alert("getPatientNames error: : "
+								+ caught.toString());
+					}
+
+					@Override
+					public void onSuccess(String result) {
+						if (result != null) {
+
+							try {
+								// parse the json string into a jsArray
+								ResultSet<PatientOverlay> resultSet = JsonUtils
+										.safeEval(result);
+
+								List<String> patientNames = new ArrayList<String>();
+								for (int i = 0; i < resultSet.length(); i++) {
+									patientNames.add(resultSet.get(i)
+											.getSubjectName()
+											.replaceAll("^", "")
+											+ "$"
+											+ resultSet.get(i).getSubjectID());
+								}
+								lesionTrackingViewImpl
+										.loadPatientNames(patientNames);
+							} catch (Exception e) {
+								logger.info("Error: " + e.getMessage());
+							}
+
+						} else {
+							logger.info("Error: " + result);
+						}
+
+					}
+				});
+	}
+
+	// user hit a patient name
+	public void onPatientNameSelected(String patientID) {
+		trackingServiceAsync.getImageAnnotationsForPatient(projectID,
+				patientID, username, session, server,
 				new AsyncCallback<List<ImageAnnotation>>() {
 					@Override
 					public void onFailure(Throwable caught) {
@@ -162,9 +180,9 @@ public class LesionTracking implements EntryPoint {
 		 * lesionTrackingViewImpl.loadStudiesList(studies); } });
 		 */
 	}
-	
-	public static LesionTrackingServiceAsync getLesionTrackingServiceAsync() {
-		 return lesionTrackingServiceAsync;
+
+	public static TrackingServiceAsync getTrackingServiceAsync() {
+		return trackingServiceAsync;
 	}
 
 	/*
@@ -214,9 +232,10 @@ public class LesionTracking implements EntryPoint {
 	 * lesionTrackingViewImpl.loadMetricsList(metrics); } }); }
 	 */
 
+	// user hit a metric item
 	public void onMetricsSelected(List<String> selectedMetrics) {
 		ImageAnnotation[][] imageAnnotationsByStudyDate = RECISTCalculator
-				.loadAndSortAIMFilesByStudyDate(imageAnnotations);
+				.loadAndSortAIMFilesByStudyDate(imageAnnotations, server);
 		cr = RECISTCalculator.calculateRECIST(imageAnnotationsByStudyDate,
 				selectedMetrics.toArray(new String[selectedMetrics.size()]),
 				new SharedNumberFormat() {
@@ -262,7 +281,7 @@ public class LesionTracking implements EntryPoint {
 	}
 
 	public void onDownloadAsRECISTTableButtonClicked() {
-		lesionTrackingServiceAsync.downloadRECISTTableImage(cr,
+		trackingServiceAsync.downloadRECISTTableImage(cr,
 				new AsyncCallback<String>() {
 					@Override
 					public void onSuccess(String result) {
@@ -278,7 +297,7 @@ public class LesionTracking implements EntryPoint {
 	}
 
 	public void onDownloadAsRECISTChartButtonClicked() {
-		lesionTrackingServiceAsync.downloadRECISTChartImage(cr,
+		trackingServiceAsync.downloadRECISTChartImage(cr,
 				new AsyncCallback<String>() {
 					@Override
 					public void onSuccess(String result) {
@@ -291,4 +310,42 @@ public class LesionTracking implements EntryPoint {
 					}
 				});
 	}
+
+	public Widget getView() {
+		return lesionTrackingViewImpl.asWidget();
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	public void setProjectID(String projectID) {
+		this.projectID = projectID;
+	}
+
+	public void setServer(String server) {
+		this.server = server;
+	}
+
+	public void activate(String projectID, String username, String session,
+			String server) {
+
+		this.projectID = projectID;
+		this.username = username;
+		this.session = session;
+		this.server = server;
+		RECISTCalculator.setServer(server);
+		logger.info("activate" + projectID + " " + username + " " + session
+				+ " " + server);
+		onGetPatientNames();
+	}
+
+	public void deactivate() {
+	}
+
+	public void setPatients(List<String> result) {
+		lesionTrackingViewImpl.loadPatientNames(result);
+
+	}
+
 }

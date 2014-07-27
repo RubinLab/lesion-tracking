@@ -15,8 +15,8 @@
       <servlet-class>edu.stanford.isis.epad.plugin.lesiontracking.server.AnnotationXMLFileUploadServlet</servlet-class>
    </servlet>
    <servlet>
-      <servlet-name>lesionTrackingServiceImpl</servlet-name>
-      <servlet-class>edu.stanford.isis.epad.plugin.lesiontracking.server.LesionTrackingServiceImpl</servlet-class>
+      <servlet-name>trackingServiceImpl</servlet-name>
+      <servlet-class>edu.stanford.isis.epad.plugin.lesiontracking.server.TrackingServiceImpl</servlet-class>
    </servlet>
    <servlet>
       <servlet-name>RECISTTableServlet</servlet-name>
@@ -31,8 +31,8 @@
       <url-pattern>/annotations</url-pattern>
    </servlet-mapping>
    <servlet-mapping>
-      <servlet-name>lesionTrackingServiceImpl</servlet-name>
-      <url-pattern>/lesiontracking/lesionTrackingService</url-pattern>
+      <servlet-name>trackingServiceImpl</servlet-name>
+      <url-pattern>/lesiontracking/trackingService</url-pattern>
    </servlet-mapping>
    <servlet-mapping>
       <servlet-name>RECISTTableServlet</servlet-name>

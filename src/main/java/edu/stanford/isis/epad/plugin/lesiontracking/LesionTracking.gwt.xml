@@ -11,6 +11,9 @@
 		class='edu.stanford.isis.epad.plugin.lesiontracking.client.LesionTracking' />
 	<source path='client' />
 	<source path='shared' />
+	
+	<!-- Compile for chrome with string 'safari', firefox with string 'gecko1_8' -->
+	<set-property name="user.agent" value="safari,gecko1_8"/>
 
 	<!-- enable super dev mode -->
 	<add-linker name="xsiframe" />

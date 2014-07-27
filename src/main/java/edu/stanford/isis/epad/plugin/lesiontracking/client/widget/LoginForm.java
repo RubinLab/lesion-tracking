@@ -26,10 +26,8 @@ package edu.stanford.isis.epad.plugin.lesiontracking.client.widget;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.logging.Logger;
 
 //import org.restlet.client.resource.Result;
-
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.dom.client.LIElement;
@@ -48,20 +46,18 @@ import com.google.gwt.user.client.Cookies;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.PasswordTextBox;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
 
 import edu.stanford.isis.epad.plugin.lesiontracking.client.LesionTracking;
-import edu.stanford.isis.epad.plugin.lesiontracking.client.LesionTrackingServiceAsync;
-import edu.stanford.isis.epad.plugin.lesiontracking.client.LesionTrackingViewImpl;
-//import edu.stanford.isis.epad.plugin.lesiontracking.client.ClientFactory;
-import edu.stanford.isis.epad.plugin.lesiontracking.client.events.LoginEvent;
+import edu.stanford.isis.epad.plugin.lesiontracking.client.TrackingServiceAsync;
 //import edu.stanford.isis.epad.plugin.lesiontracking.client.util.Cookie;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.Preferences;
+
 //import edu.stanford.isis.epad.plugin.lesiontracking.shared.aimapi.User;
+//import edu.stanford.isis.epad.plugin.lesiontracking.client.ClientFactory;
 
 /**
  * 
@@ -78,16 +74,17 @@ public class LoginForm extends DialogBox {
 
 	final int COOKIE_EXPIRE_DAYS = 365;
 	final long MILLISECS_PER_DAY = 86400000;
-//	final String ePadLicenseAgreement = "ePadLicenseAgreementFieldset";
+	// final String ePadLicenseAgreement = "ePadLicenseAgreementFieldset";
 
 	// declare local static variables
-//	private final String LICENSE_ERROR = "Please review and accept the ePAD license agreement terms.";
+	// private final String LICENSE_ERROR =
+	// "Please review and accept the ePAD license agreement terms.";
 	private final String COOKIE_DISABLED = "Please enable cookies in your browser to access this web site.";
 	private final String SERVER_ERROR = "An unexpected error occurred on the server:";
 	private final String USER_ERROR = "The user name or password is invalid. Please contact your site administrator.";
-	
+
 	LesionTracking lesionTracking;
-	LesionTrackingServiceAsync lesionTrackingServiceAsync;
+	TrackingServiceAsync lesionTrackingServiceAsync;
 
 	@UiField
 	TextBox username;
@@ -107,13 +104,14 @@ public class LoginForm extends DialogBox {
 	LIElement recoverGreetingMessage;
 	@UiField
 	LIElement recoverErrorMessage;
-//	@UiField
-//	CheckBox agree;
 
-//	private static final Logger logger = Logger.getLogger("LoginForm");
+	// @UiField
+	// CheckBox agree;
+
+	// private static final Logger logger = Logger.getLogger("LoginForm");
 
 	public LoginForm(LesionTracking lesionTracking) {
-		
+
 		setWidget(uiBinder.createAndBindUi(this));
 		addStyleName("transparency");
 		setAnimationEnabled(false);
@@ -122,18 +120,18 @@ public class LoginForm extends DialogBox {
 		setAutoHideEnabled(true);
 
 		this.lesionTracking = lesionTracking;
-		
+
 		clearError();
 		scheduleFocus();
 		haveUser();
-		
-		lesionTrackingServiceAsync = LesionTracking.getLesionTrackingServiceAsync();
-		
+
+		lesionTrackingServiceAsync = LesionTracking.getTrackingServiceAsync();
+
 		username.addBlurHandler(new BlurHandler() {
 
 			@Override
 			public void onBlur(BlurEvent event) {
-//				agree.setValue(isLicenseValid(username.getText()));
+				// agree.setValue(isLicenseValid(username.getText()));
 			}
 		});
 
@@ -205,31 +203,32 @@ public class LoginForm extends DialogBox {
 			// cookies
 			// are enabled
 			showError(COOKIE_DISABLED);
-//		} else if (!isLicenseValid(login.get(USERNAME))) {
-//
-//			// user can't possibly log in here until
-//			// cookies
-//			// are enabled
-//			showError(LICENSE_ERROR);
+			// } else if (!isLicenseValid(login.get(USERNAME))) {
+			//
+			// // user can't possibly log in here until
+			// // cookies
+			// // are enabled
+			// showError(LICENSE_ERROR);
 		} else {
-			lesionTrackingServiceAsync.requestSessionString(login, new AsyncCallback<String>() {
-				@Override
-				public void onFailure(Throwable caught) {
-					Window.alert("Username and/or password are incorrect.");
-				}
-	
-				@Override
-				public void onSuccess(String session) {
-					onLoginSuccess(session, login.get(USERNAME), true);
-				}
-			});
+			lesionTrackingServiceAsync.requestSessionString(login,
+					new AsyncCallback<String>() {
+						@Override
+						public void onFailure(Throwable caught) {
+							Window.alert("Username and/or password are incorrect.");
+						}
+
+						@Override
+						public void onSuccess(String session) {
+							onLoginSuccess(session, login.get(USERNAME), true);
+						}
+					});
 		}
 
 	}
-	
+
 	private void onLoginSuccess(String result, String username, boolean accept) {
-		
-//		setUserName(username);
+
+		// setUserName(username);
 
 		// if the user just clicked the accept checkbox, then save this date
 		if (accept) {
@@ -254,82 +253,82 @@ public class LoginForm extends DialogBox {
 
 		// update the preferences cookie if there is one or create one if there
 		// is not one already
-//		Cookie cookie = new Cookie();
-//		cookie.getUserPreferences();
-//		cookie.saveUserPreferences();
+		// Cookie cookie = new Cookie();
+		// cookie.getUserPreferences();
+		// cookie.saveUserPreferences();
 
 		// tell the world we have somebody logged in
-//		ClientFactory.impl.getEventBus().fireEvent(
-//				new LoginEvent(true, username, ""));
+		// ClientFactory.impl.getEventBus().fireEvent(
+		// new LoginEvent(true, username, ""));
 
-		hide();		
-		onSetClient();		
+		hide();
+		onSetClient();
 	}
-	
+
 	public void onSetClient() {
 		String username = Cookies.getCookie("ePADLoggedinUser");
 		String session = Cookies.getCookie("JSESSIONID");
 
-		lesionTrackingServiceAsync.setClient(username, session, new AsyncCallback<String>() {
-			@Override
-			public void onFailure(Throwable caught) {
-				Window.alert("setClient error: : " + caught.toString());
-			}
+		lesionTrackingServiceAsync.setClient(username,
+				new AsyncCallback<String>() {
+					@Override
+					public void onFailure(Throwable caught) {
+						Window.alert("setClient error: : " + caught.toString());
+					}
 
-			@Override
-			public void onSuccess(String result) {
-				lesionTracking.startModule();
-			}
-		});
+					@Override
+					public void onSuccess(String result) {
+						lesionTracking.startModule();
+					}
+				});
 	}
 
 	private void onLoginFailure(String error) {
-		
+
 		showError(error);
 		clearUser();
 
 		// tell the world we do not have anybody logged in
-//		ClientFactory.impl.getEventBus().fireEvent(new LoginEvent(false));
+		// ClientFactory.impl.getEventBus().fireEvent(new LoginEvent(false));
 	}
 
-
 	// has the user agreed to the license terms?
-//	private boolean isLicenseValid(String user) {
-//
-//		boolean agreeChecked = agree.getValue();
-//		boolean cookieChecked = false;
-//
-//		if (user != null && !user.isEmpty()) {
-//			Cookie cookie = new Cookie();
-//			cookieChecked = cookie.isLicenseValid(user);
-//		}
-//
-//		return (agreeChecked || cookieChecked);
-//	}
+	// private boolean isLicenseValid(String user) {
+	//
+	// boolean agreeChecked = agree.getValue();
+	// boolean cookieChecked = false;
+	//
+	// if (user != null && !user.isEmpty()) {
+	// Cookie cookie = new Cookie();
+	// cookieChecked = cookie.isLicenseValid(user);
+	// }
+	//
+	// return (agreeChecked || cookieChecked);
+	// }
 
-//	public void setUserName(String userName) {
-//		
-//		User user = ClientFactory.impl.getUser(false);
-//		user.setLoginName(userName);
-//		user.setName(userName);
-//		user.setCagridId(0);
-//		
-//	}
+	// public void setUserName(String userName) {
+	//
+	// User user = ClientFactory.impl.getUser(false);
+	// user.setLoginName(userName);
+	// user.setName(userName);
+	// user.setCagridId(0);
+	//
+	// }
 
-//	public String getUserName() {
-//		
-//		User user = ClientFactory.impl.getUser(false);
-//		return user.getLoginName();
-//		
-//	}
+	// public String getUserName() {
+	//
+	// User user = ClientFactory.impl.getUser(false);
+	// return user.getLoginName();
+	//
+	// }
 
-//	private void updatePreferences() {
-//		
-//		Cookie cookie = new Cookie();
-//		cookie.getUserPreferences();
-//		cookie.saveUserPreferences();
-//		
-//	}
+	// private void updatePreferences() {
+	//
+	// Cookie cookie = new Cookie();
+	// cookie.getUserPreferences();
+	// cookie.saveUserPreferences();
+	//
+	// }
 
 	// native void clientSideLogin(String proxy, String username, String
 	// password)/*-{
@@ -359,15 +358,14 @@ public class LoginForm extends DialogBox {
 	//
 	// }-*/;
 
-	
 	@UiHandler("cancelButton")
 	protected void onCancel(ClickEvent e) {
-		
+
 		hide();
 	}
 
 	private void scheduleFocus() {
-		
+
 		Scheduler.get().scheduleDeferred(new Scheduler.ScheduledCommand() {
 			public void execute() {
 				username.setFocus(true);
@@ -385,19 +383,19 @@ public class LoginForm extends DialogBox {
 		String newUser = Cookies.getCookie(Preferences.epadLoggedinUser);
 		String session = Cookies.getCookie("JSESSIONID");
 
-//		String currentUser = getUserName();
+		// String currentUser = getUserName();
 
 		// it looks like there is someone logged in
 		if (newUser != null && !newUser.isEmpty() && session != null
 				&& !session.isEmpty()) {
 
-//			if (currentUser == null || !currentUser.equals(newUser)) {
-//
-//				// we think we have somebody else logged in so update who we
-//				// think is logged in
-//				setUserName(newUser);
-////				updatePreferences();
-//			}
+			// if (currentUser == null || !currentUser.equals(newUser)) {
+			//
+			// // we think we have somebody else logged in so update who we
+			// // think is logged in
+			// setUserName(newUser);
+			// // updatePreferences();
+			// }
 
 			result = true;
 		}
@@ -405,13 +403,13 @@ public class LoginForm extends DialogBox {
 	}
 
 	// are we logged in?
-//	public boolean isLoggedIn() {
-//
-//		String userName = getUserName();
-//		boolean result = (userName != null && !userName.isEmpty());
-//		return result;
-//
-//	}
+	// public boolean isLoggedIn() {
+	//
+	// String userName = getUserName();
+	// boolean result = (userName != null && !userName.isEmpty());
+	// return result;
+	//
+	// }
 
 	// clear the fields and show the form
 	public void showAndClear() {
@@ -426,7 +424,7 @@ public class LoginForm extends DialogBox {
 		username.setFocus(true);
 		username.selectAll();
 
-//		agree.setValue(false);
+		// agree.setValue(false);
 
 	}
 
@@ -447,14 +445,14 @@ public class LoginForm extends DialogBox {
 	}
 
 	private void clearError() {
-		
+
 		loginErrorMessage.setInnerHTML("");
 		loginErrorMessage.addClassName("hidden");
 		recoverErrorMessage.setInnerHTML("");
 	}
 
 	private void showError(String error) {
-		
+
 		loginErrorMessage.setInnerHTML(error);
 		loginErrorMessage.removeClassName("hidden");
 		recoverErrorMessage.setInnerHTML("");
@@ -463,23 +461,23 @@ public class LoginForm extends DialogBox {
 
 	public void clearUser() {
 
-//		setUserName("");
+		// setUserName("");
 
 		// remove the logged in user cookie
 		Cookies.removeCookie(Preferences.epadLoggedinUser);
 		Cookies.removeCookie("JSESSIONID");
 
-//		ClientFactory.impl.getRpcService().logout(new Result<String>() {
-//
-//			@Override
-//			public void onSuccess(String result) {
-//			}
-//
-//			@Override
-//			public void onFailure(Throwable caught) {
-//				logger.info("Logout onFailure " + caught.getMessage());
-//			}
-//		});
+		// ClientFactory.impl.getRpcService().logout(new Result<String>() {
+		//
+		// @Override
+		// public void onSuccess(String result) {
+		// }
+		//
+		// @Override
+		// public void onFailure(Throwable caught) {
+		// logger.info("Logout onFailure " + caught.getMessage());
+		// }
+		// });
 	}
 
 }
