@@ -196,23 +196,23 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 		return imageAnnotations;
 	}
 
-	public static void setCookie(DefaultHttpClient client, String session,
-			String server) {
-
-		server = server.replace("http://", ".").replace(":8080", "");
-		String path = "/epad";
-
-		CookieStore cookieStore = client.getCookieStore();
-
-		BasicClientCookie cookie = new BasicClientCookie("JSESSIONID", session);
-
-		cookie.setVersion(0);
-		cookie.setDomain(server);
-		cookie.setPath(path);
-
-		cookieStore.addCookie(cookie);
-		client.setCookieStore(cookieStore);
-	}
+	// public static void setCookie(DefaultHttpClient client, String session,
+	// String server) {
+	//
+	// server = server.replace("http://", ".").replace(":8080", "");
+	// String path = "/epad";
+	//
+	// CookieStore cookieStore = client.getCookieStore();
+	//
+	// BasicClientCookie cookie = new BasicClientCookie("JSESSIONID", session);
+	//
+	// cookie.setVersion(0);
+	// cookie.setDomain(server);
+	// cookie.setPath(path);
+	//
+	// cookieStore.addCookie(cookie);
+	// client.setCookieStore(cookieStore);
+	// }
 
 	@Override
 	public String downloadRECISTTableImage(CalculationResult cr) {
