@@ -18,6 +18,10 @@ src/main/gwt-unitCache
 *.cache.html
 
 .gwt/*
+/.gwt
+
+lesiontracking/*
+/lesiontracking
 
 *.cache.js
 
