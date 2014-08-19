@@ -25,4 +25,7 @@ lesiontracking/*
 
 *.cache.js
 
+.DS_Store
+
 *.pyc 
+/bin
