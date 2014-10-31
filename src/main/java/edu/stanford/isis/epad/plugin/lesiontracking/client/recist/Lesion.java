@@ -27,13 +27,13 @@ public class Lesion implements Serializable
     {
         if(metric == null || temporalMeasurement == null) return;
 
-        if(!temporalMeasurements.containsKey(metric))
+        if(!getTemporalMeasurements().containsKey(metric))
         {
             metrics.add(metric);
-            temporalMeasurements.put(metric, new ArrayList<String>());
+            getTemporalMeasurements().put(metric, new ArrayList<String>());
         }
 
-        temporalMeasurements.get(metric).add(temporalMeasurement);
+        getTemporalMeasurements().get(metric).add(temporalMeasurement);
     }
 
     public void addWADOURL(String wadoURL)
@@ -54,7 +54,7 @@ public class Lesion implements Serializable
     public int getNumberOfTemporalMeasurements()
     {
         int max = 0;
-        for(List<String> metricValues : temporalMeasurements.values())
+        for(List<String> metricValues : getTemporalMeasurements().values())
             if(metricValues.size() > max)
                 max = metricValues.size();
 
@@ -63,7 +63,7 @@ public class Lesion implements Serializable
 
     public ArrayList<String> getMeasurementsForMetric(String metric)
     {
-        return temporalMeasurements.get(metric);
+        return getTemporalMeasurements().get(metric);
     }
 
     public void setLesionID(String lesionID)
@@ -90,8 +90,16 @@ public class Lesion implements Serializable
     public String toString()
     {
         StringBuffer sb = new StringBuffer( "Lesion ID: " + lesionID + "    Lesion Location: " + location );
-        for(int i = 0; i < temporalMeasurements.size(); i++)
-            sb.append("    T" + i + ": " + temporalMeasurements.get(i));// + "    WADO URL: " + wadoURLs.get(i));
+        for(int i = 0; i < getTemporalMeasurements().size(); i++)
+            sb.append("    T" + i + ": " + getTemporalMeasurements().get(i));// + "    WADO URL: " + wadoURLs.get(i));
         return sb.toString();
     }
+
+	public HashMap<String, ArrayList<String>> getTemporalMeasurements() {
+		return temporalMeasurements;
+	}
+
+	public void setTemporalMeasurements(HashMap<String, ArrayList<String>> temporalMeasurements) {
+		this.temporalMeasurements = temporalMeasurements;
+	}
 }

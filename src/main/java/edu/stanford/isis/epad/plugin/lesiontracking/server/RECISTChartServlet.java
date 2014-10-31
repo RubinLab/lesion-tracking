@@ -9,7 +9,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import javax.imageio.ImageIO;
 import javax.servlet.ServletException;
@@ -27,8 +29,6 @@ import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.renderer.category.LineAndShapeRenderer;
 import org.jfree.data.category.DefaultCategoryDataset;
 
-import edu.stanford.isis.epad.plugin.lesiontracking.client.recist.CalculationResult;
-import edu.stanford.isis.epad.plugin.lesiontracking.client.recist.RECISTCalculator;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.ImageAnnotation;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.SharedNumberFormat;
 
@@ -60,7 +60,7 @@ public class RECISTChartServlet extends HttpServlet {
 		List<String> selectedMetrics = new ArrayList<String>();
 		selectedMetrics.add(metric);
 
-		List<ImageAnnotation> imageAnnotations;
+		Map<Date, List<ImageAnnotation>> imageAnnotations;
 		try {
 			imageAnnotations = new TrackingServiceImpl()
 					.getImageAnnotationsForPatient(projectID, patientID,
@@ -71,6 +71,7 @@ public class RECISTChartServlet extends HttpServlet {
 			return;
 		}
 
+		/*
 		ImageAnnotation[][] imageAnnotationsByStudyDate = RECISTCalculator
 				.loadAndSortAIMFilesByStudyDate(imageAnnotations, server);
 		CalculationResult cr = RECISTCalculator.calculateRECIST(
@@ -91,8 +92,10 @@ public class RECISTChartServlet extends HttpServlet {
 		OutputStream out = resp.getOutputStream();
 		ImageIO.write(bi, "jpg", out);
 		out.close();
+		*/
 	}
 
+	/*
 	public static File drawSeriesGraphToFile(
 			CalculationResult calculationResult, String filename) {
 		File file = new File(filename);
@@ -105,16 +108,16 @@ public class RECISTChartServlet extends HttpServlet {
 
 		DefaultCategoryDataset defaultCategoryDataset = new DefaultCategoryDataset();
 
+		
 		String metric = calculationResult.getMetrics()[0];
-		for (int i = 0; i < metricSumsDouble.length; i++)
-			defaultCategoryDataset.addValue(metricSumsDouble[i], "Sum of "
-					+ metric + "s", calculationResult.getStudyDates()[0][i]);
+		//for (int i = 0; i < metricSumsDouble.length; i++)
+		//	defaultCategoryDataset.addValue(metricSumsDouble[i], "Sum of "
+		//			+ metric + "s", calculationResult.getStudyDates()[0][i]);
 		JFreeChart lineChart = ChartFactory.createBarChart("Sum of " + metric
 				+ "s vs. Study Date", "Study Date", "Sum of " + metric + "s ("
 				+ calculationResult.getMetricUnits()[0] + ")",
 				defaultCategoryDataset, PlotOrientation.VERTICAL, true, true,
 				false);
-
 		lineChart.setBackgroundPaint(new Color(0xF0, 0xF0, 0xF0));
 
 		final CategoryPlot categoryPlot = lineChart.getCategoryPlot();
@@ -154,5 +157,5 @@ public class RECISTChartServlet extends HttpServlet {
 		}
 
 		return null;
-	}
+	}*/
 }

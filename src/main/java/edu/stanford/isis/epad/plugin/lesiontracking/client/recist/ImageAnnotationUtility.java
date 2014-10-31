@@ -1,5 +1,11 @@
 package edu.stanford.isis.epad.plugin.lesiontracking.client.recist;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.ImageAnnotation;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.ImageReference;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.ImageReferenceCollection;
@@ -12,7 +18,9 @@ import edu.stanford.isis.epad.plugin.lesiontracking.shared.Study;
 
 public class ImageAnnotationUtility
 {
-    public static String getStudyDate(ImageReferenceCollection imageReferenceCollection)
+	private static DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
+    
+    public static Date getStudyDate(ImageReferenceCollection imageReferenceCollection) throws ParseException
     {
         for(int i = 0; i < imageReferenceCollection.getNumberOfImageReferences(); i++)
         {
@@ -45,14 +53,14 @@ public class ImageAnnotationUtility
                         int timeStart = studyDateAndTime.indexOf('T');
                         // Try to get just the date (without the time)
                         if(timeStart > -1)
-                            return studyDateAndTime.substring(0, timeStart);
+                            return dateFormat.parse(studyDateAndTime.substring(0, timeStart));
 
 
                         // This is for the second type.
                         if(studyDateAndTime.length() == 8)
-                            return studyDateAndTime.substring(0, 4) + "-" + studyDateAndTime.substring(4, 6) + "-" + studyDateAndTime.substring(6, 8);
+                            return dateFormat.parse(studyDateAndTime.substring(0, 4) + "-" + studyDateAndTime.substring(4, 6) + "-" + studyDateAndTime.substring(6, 8));
 
-                        return studyDateAndTime;
+                        return dateFormat.parse(studyDateAndTime);
                     }
                 }
             }
@@ -71,9 +79,9 @@ public class ImageAnnotationUtility
 
                         // Try to get just the date (without the time)
                         if(timeStart > -1)
-                            return studyDateAndTime.substring(0, timeStart);
+                            return dateFormat.parse(studyDateAndTime.substring(0, timeStart));
 
-                        return studyDateAndTime;
+                        return dateFormat.parse(studyDateAndTime);
                     }
                 }
             }

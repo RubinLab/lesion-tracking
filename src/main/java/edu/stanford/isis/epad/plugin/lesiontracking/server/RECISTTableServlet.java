@@ -8,7 +8,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import javax.imageio.ImageIO;
 import javax.servlet.ServletException;
@@ -16,7 +18,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import edu.stanford.isis.epad.plugin.lesiontracking.client.recist.CalculationResult;
 import edu.stanford.isis.epad.plugin.lesiontracking.client.recist.Lesion;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.ImageAnnotation;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.SharedNumberFormat;
@@ -48,7 +49,7 @@ public class RECISTTableServlet extends HttpServlet {
 		List<String> selectedMetrics = new ArrayList<String>();
 		selectedMetrics.add(metric);
 
-		List<ImageAnnotation> imageAnnotations;
+		Map<Date, List<ImageAnnotation>> imageAnnotations;
 		try {
 			imageAnnotations = new TrackingServiceImpl()
 					.getImageAnnotationsForPatient(projectID, patientID,
@@ -59,9 +60,10 @@ public class RECISTTableServlet extends HttpServlet {
 			return;
 		}
 
-		ImageAnnotation[][] imageAnnotationsByStudyDate = RECISTCalculator
-				.loadAndSortAIMFilesByStudyDate(imageAnnotations, server);
-		CalculationResult cr = RECISTCalculator.calculateRECIST(
+		//ImageAnnotation[][] imageAnnotationsByStudyDate = RECISTCalculator
+		//		.loadAndSortAIMFilesByStudyDate(imageAnnotations, server);
+		//CalculationResult cr = null;
+		/*RECISTCalculator.calculateRECIST(
 				imageAnnotationsByStudyDate,
 				selectedMetrics.toArray(new String[selectedMetrics.size()]),
 				new SharedNumberFormat() {
@@ -70,7 +72,6 @@ public class RECISTTableServlet extends HttpServlet {
 						return new DecimalFormat().format(d);
 					}
 				});
-
 		resp.setContentType("image/jpeg");
 		File file = downloadRECISTTableImage(cr, getServletContext()
 				.getRealPath("/"));
@@ -78,8 +79,10 @@ public class RECISTTableServlet extends HttpServlet {
 		OutputStream out = resp.getOutputStream();
 		ImageIO.write(bi, "jpg", out);
 		out.close();
+	*/
 	}
 
+	/*
 	public static File downloadRECISTTableImage(CalculationResult cr,
 			String realPath) {
 		String[] metrics = cr.getMetrics();
@@ -193,7 +196,7 @@ public class RECISTTableServlet extends HttpServlet {
 		}
 
 		return null;
-	}
+	}*/
 
 	private static File writeImage(BufferedImage image, String fileName)
 			throws IOException {

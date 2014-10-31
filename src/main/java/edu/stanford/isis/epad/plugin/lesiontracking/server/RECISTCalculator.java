@@ -1,17 +1,14 @@
 package edu.stanford.isis.epad.plugin.lesiontracking.server;
 
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.PriorityQueue;
-import java.util.Set;
+import java.util.Map;
 
-import edu.stanford.isis.epad.plugin.lesiontracking.client.recist.CalculationResult;
 import edu.stanford.isis.epad.plugin.lesiontracking.client.recist.ImageAnnotationUtility;
-import edu.stanford.isis.epad.plugin.lesiontracking.client.recist.Lesion;
-import edu.stanford.isis.epad.plugin.lesiontracking.shared.DateTimeFormat;
+import edu.stanford.isis.epad.plugin.lesiontracking.server.TumorAnalysisCalculator.CalculationResult;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.Image;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.ImageAnnotation;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.ImageReference;
@@ -19,196 +16,36 @@ import edu.stanford.isis.epad.plugin.lesiontracking.shared.ImageReferenceCollect
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.ImageSeries;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.ImageStudy;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.Series;
-import edu.stanford.isis.epad.plugin.lesiontracking.shared.SharedNumberFormat;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.Study;
 
 public class RECISTCalculator {
 
 	static String server;
+	
+	public static Map<Date, List<ImageAnnotation>> loadAndSortAIMFilesByStudyDate(List<ImageAnnotation> imageAnnotations)
+	{
+		Map<Date, List<ImageAnnotation>> imageAnnotationsByStudyDate = new HashMap<Date, List<ImageAnnotation>>();
 
-	@SuppressWarnings("deprecation")
-	public static ImageAnnotation[][] loadAndSortAIMFilesByStudyDate(
-			List<ImageAnnotation> imageAnnotations, String s) {
-		ArrayList<ArrayList<ImageAnnotation>> imageAnnotationsAsAL = new ArrayList<ArrayList<ImageAnnotation>>();
-		HashMap<String, Integer> lesionToIndexMap = new HashMap<String, Integer>();
-		HashMap<Integer, String> indexToLesionMap = new HashMap<Integer, String>();
-		server = s;
-
-		// Split the AIM files according to their study dates.
-		int numberOfLesions = 0;
-		for (ImageAnnotation imageAnnotation : imageAnnotations) {
-			String studyDate = ImageAnnotationUtility
-					.getStudyDate(imageAnnotation
-							.getImageReferenceCollection(0));
-
-			if (!lesionToIndexMap.containsKey(studyDate)) {
-				imageAnnotationsAsAL.add(new ArrayList<ImageAnnotation>());
-				lesionToIndexMap.put(studyDate, numberOfLesions);
-				indexToLesionMap.put(numberOfLesions, studyDate);
-				numberOfLesions++;
+		for (ImageAnnotation imageAnnotation : imageAnnotations)
+		{
+			Date studyDate;
+			try
+			{
+				studyDate = ImageAnnotationUtility.getStudyDate(imageAnnotation.getImageReferenceCollection(0));
+				
 			}
-
-			imageAnnotationsAsAL.get(lesionToIndexMap.get(studyDate)).add(
-					imageAnnotation);
-		}
-
-		// Sort the imageAnnotationByLesion array by study date.
-		PriorityQueue<Date> priorityQueue = new PriorityQueue<Date>();
-		Set<String> allStudyDates = lesionToIndexMap.keySet();
-		Iterator<String> allStudyDatesIterator = allStudyDates.iterator();
-		while (allStudyDatesIterator.hasNext()) {
-			String currentDate = allStudyDatesIterator.next().trim();
-			String[] yymmdd = currentDate.split("-");
-			Date date = new Date();
-			date.setYear(Integer.parseInt(yymmdd[0]) - 1900);
-			date.setMonth(Integer.parseInt(yymmdd[1]) - 1);
-			date.setDate(Integer.parseInt(yymmdd[2]));
-			priorityQueue.add(date);
-		}
-
-		int newIndex = 0;
-		while (!priorityQueue.isEmpty()) {
-			Date date = priorityQueue.remove();
-			DateTimeFormat dateTimeFormat = DateTimeFormat
-					.getFormat("yyyy-MM-dd");
-			String calendarAsString = dateTimeFormat.format(date);
-			int oldIndex = lesionToIndexMap.get(calendarAsString);
-			if (newIndex != oldIndex) {
-				ArrayList<ImageAnnotation> swapOut = imageAnnotationsAsAL
-						.get(newIndex);
-				imageAnnotationsAsAL.set(newIndex,
-						imageAnnotationsAsAL.get(oldIndex));
-				imageAnnotationsAsAL.set(oldIndex, swapOut);
-				lesionToIndexMap.put(calendarAsString, newIndex);
-
-				String oldLesionName = indexToLesionMap.get(newIndex);
-				lesionToIndexMap.put(oldLesionName, oldIndex);
-				indexToLesionMap.put(newIndex, calendarAsString);
-				indexToLesionMap.put(oldIndex, oldLesionName);
+			catch(ParseException parseException)
+			{
+				studyDate = new Date(0l);
 			}
-			newIndex++;
+			
+			if(!imageAnnotationsByStudyDate.containsKey(studyDate))
+				imageAnnotationsByStudyDate.put(studyDate, new ArrayList<ImageAnnotation>());
+
+			imageAnnotationsByStudyDate.get(studyDate).add(imageAnnotation);
 		}
 
-		ImageAnnotation[][] imageAnnotationByLesion = new ImageAnnotation[imageAnnotationsAsAL
-				.size()][];
-		for (int i = 0; i < imageAnnotationByLesion.length; i++) {
-			ImageAnnotation[] currentImageAnnotationArray = new ImageAnnotation[imageAnnotationsAsAL
-					.get(i).size()];
-			for (int j = 0; j < currentImageAnnotationArray.length; j++)
-				currentImageAnnotationArray[j] = imageAnnotationsAsAL.get(i)
-						.get(j);
-			imageAnnotationByLesion[i] = currentImageAnnotationArray;
-
-		}
-
-		return imageAnnotationByLesion;
-	}
-
-	public static CalculationResult calculateRECIST(
-			ImageAnnotation[][] imageAnnotationsByStudyDate, String[] metrics,
-			SharedNumberFormat sharedNumberFormat) {
-		/*
-		 * final String servletPath = getServletContext().getRealPath("");
-		 * 
-		 * ImageAnnotation[][] imageAnnotationsByStudyDate =
-		 * AIMFileReader.loadAndSortAIMFilesByStudyDate(aimFilenames);
-		 */
-		// Perform a calculation for each metric.
-		TumorAnalysisCalculator[] tumorAnalysisCalculators = new TumorAnalysisCalculator[metrics.length];
-		for (int i = 0; i < metrics.length; i++)
-			tumorAnalysisCalculators[i] = new TumorAnalysisCalculator(
-					imageAnnotationsByStudyDate, metrics[i]);
-
-		// Create an array of lesion references. Each one holds a lesion
-		// and its information that changes over time.
-		Lesion[] lesions = new Lesion[imageAnnotationsByStudyDate[0].length];
-		for (int i = 0; i < lesions.length; i++) {
-			ImageAnnotation ia = imageAnnotationsByStudyDate[0][i];
-			String loc = ia.getAnatomicEntityCollection(0).getAnatomicEntity(0)
-					.getCodeMeaning();
-			lesions[i] = new Lesion();
-			lesions[i].setLesionID(Integer.toString(i));
-			lesions[i].setLocation(loc);
-
-			// For each study date, copy the lesion's information.
-			for (int j = 0; j < imageAnnotationsByStudyDate.length; j++) {
-				ia = imageAnnotationsByStudyDate[j][i];
-				lesions[i].addWADOURL(constructWADOURL(ia));
-
-				for (int k = 0; k < tumorAnalysisCalculators.length; k++) {
-					String metric = tumorAnalysisCalculators[k].getMetric();
-					String[][] metricValues = tumorAnalysisCalculators[k]
-							.getMetricValues();
-
-					if (i < metricValues[j].length) {
-						lesions[i].addTemporalMeasurementForMetric(metric,
-								metricValues[j][i]);
-
-						/*
-						 * // Overlay the ROI on the image. BufferedImage bi =
-						 * WADORequest.getImage(ia); ROI roi =
-						 * ROI.extractROI(ia);
-						 * 
-						 * if(ia != null && bi != null && roi != null) { File
-						 * file = createRandomImageFile(servletPath);
-						 * ROIDraw.drawImageToFile(bi, roi, file);
-						 * lesions[i].addWADOURL(ROI_IMAGES_RELATIVE +
-						 * file.getName()); }
-						 */
-					}
-				}
-			}
-		}
-
-		/*
-		 * SeriesGraph seriesGraph = new SeriesGraph(tumorAnalysisCalculators);
-		 * 
-		 * File file = createRandomImageFile(servletPath);
-		 * 
-		 * seriesGraph.drawSeriesGraphToFile(servletPath + "/" +
-		 * ANALYSIS_IMAGES_RELATIVE + file.getName());
-		 */
-		CalculationResult calculationResult = new CalculationResult();
-
-		// calculationResult.setAnalysisImageURL(ANALYSIS_IMAGES_RELATIVE +
-		// file.getName());
-
-		String[][] metricSums = new String[tumorAnalysisCalculators.length][];
-		String[] metricUnits = new String[tumorAnalysisCalculators.length];
-		String[][] responseRates = new String[tumorAnalysisCalculators.length][];
-		String[][] responseRatesSinceBaseline = new String[tumorAnalysisCalculators.length][];
-		String[][] responseRatesSinceNadir = new String[tumorAnalysisCalculators.length][];
-		String[][] responseCategories = new String[tumorAnalysisCalculators.length][];
-		String[][] studyDates = new String[tumorAnalysisCalculators.length][];
-
-		for (int i = 0; i < tumorAnalysisCalculators.length; i++) {
-			metricSums[i] = tumorAnalysisCalculators[i].getMetricSums();
-			metricUnits[i] = tumorAnalysisCalculators[i]
-					.getBaselineUnitOfMeasure();
-			responseRates[i] = tumorAnalysisCalculators[i].getResponseRates();
-			responseRatesSinceBaseline[i] = tumorAnalysisCalculators[i]
-					.getResponseRatesSinceBaseline();
-			responseRatesSinceNadir[i] = tumorAnalysisCalculators[i]
-					.getResponseRatesSinceNadir();
-			responseCategories[i] = tumorAnalysisCalculators[i]
-					.getResponseCategories();
-			studyDates[i] = tumorAnalysisCalculators[i].getStudyDates();
-		}
-
-		calculationResult
-				.setNumberOfTimePointsInStudy(imageAnnotationsByStudyDate.length);
-		calculationResult.setMetricSums(metricSums);
-		calculationResult.setMetricUnits(metricUnits);
-		calculationResult.setResponseRates(responseRates);
-		calculationResult
-				.setResponseRatesSinceBaseline(responseRatesSinceBaseline);
-		calculationResult.setResponseRatesSinceNadir(responseRatesSinceNadir);
-		calculationResult.setResponseCategories(responseCategories);
-		calculationResult.setMetrics(metrics);
-		calculationResult.setLesions(lesions);
-		calculationResult.setStudyDates(studyDates);
-
-		return calculationResult;
+		return imageAnnotationsByStudyDate;
 	}
 
 	public static String constructWADOURL(ImageAnnotation ia) {

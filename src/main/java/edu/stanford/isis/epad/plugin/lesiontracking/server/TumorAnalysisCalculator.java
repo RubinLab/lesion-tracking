@@ -1,16 +1,20 @@
 package edu.stanford.isis.epad.plugin.lesiontracking.server;
 
-//import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import java.text.DecimalFormat;
-
-import edu.stanford.isis.epad.plugin.lesiontracking.client.recist.ImageAnnotationUtility;
 import edu.stanford.isis.epad.plugin.lesiontracking.client.recist.UnitConversion;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.Calculation;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.CalculationCollection;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.CalculationData;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.CalculationDataCollection;
-import edu.stanford.isis.epad.plugin.lesiontracking.shared.CalculationResult;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.CalculationResultCollection;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.Data;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.DataCollection;
@@ -18,117 +22,311 @@ import edu.stanford.isis.epad.plugin.lesiontracking.shared.ImageAnnotation;
 
 public class TumorAnalysisCalculator
 {
-    private static final String COMPLETE_RESPONSE   = "CR",
-                                PARTIAL_RESPONSE    = "PR",
-                                STABLE_DISEASE	    = "SD",
-                                PROGRESSIVE_DISEASE = "PD";
+    private Map<Date, List<ImageAnnotation>> imageAnnotationsByStudyDate;
 
-    private String baselineUnitOfMeasure = "", metric = "";
-
-    private String[][] metricValues;
-
-    private String[] studyDates;
-
-    private String[] responseRates,
-                     responseRatesSinceBaseline,
-                     responseRatesSinceNadir,
-                     responseCategories;
-
-    private String[] metricSums;
-
-    private double[] metricSumsDouble;
-
-    public TumorAnalysisCalculator(ImageAnnotation[][] imageAnnotations, String metric)
+    public class CalculationResult
     {
-    	System.out.println("GOT: " + imageAnnotations.length  + " annotations.");
-        this.metric = metric;
-
-        // These will hold the metric values for each lesion.
-        metricValues = new String[imageAnnotations.length][];
-
-        for(int i = 0; i < imageAnnotations.length; i++)
-            metricValues[i] = new String[imageAnnotations[i].length];
-
-        // These will hold the sum of the metric values
-        // for each study date.
-        metricSums = new String[imageAnnotations.length];
-        metricSumsDouble = new double[imageAnnotations.length];
-
-        // Get the study dates.
-        studyDates = new String[imageAnnotations.length];
-        for(int i = 0; i < studyDates.length; i++)
-            studyDates[i] = ImageAnnotationUtility.getStudyDate(imageAnnotations[i][0].getImageReferenceCollection(0));
-
-        System.out.println("Request metric: " + metric);
+        private static final String COMPLETE_RESPONSE   = "CR",
+                                    PARTIAL_RESPONSE    = "PR",
+                                    STABLE_DISEASE	    = "SD",
+                                    PROGRESSIVE_DISEASE = "PD";
         
-        // Get the units of the first calculation result in the baseline study.
-        baselineUnitOfMeasure = getStudyUnits(imageAnnotations[0][0], metric);
-
-        // Simple hack to convert metric units to millimeters (if they are in centimeters).
-        if(baselineUnitOfMeasure.equalsIgnoreCase("cm"))
-            baselineUnitOfMeasure = "mm";
-
-//       NumberFormat df = NumberFormat.getDecimalFormat();
-        DecimalFormat df = new DecimalFormat();
-
-        // Calculate the metric sum for each study date
-        for( int i = 0; i < imageAnnotations.length; i++ )
-            for( int j = 0; j < imageAnnotations[i].length; j++ )
-                for( int k = 0; k < imageAnnotations[i][j].getNumberOfCalculationCollections(); k++)
-                    {
-                        CalculationCollection calculationCollection = imageAnnotations[i][j].getCalculationCollection(k);
-
-                        // This function call adds all values within ONE calculationCollection (and therefore one lesion)
-                        // that match the given metric. Usually there is only one such value per lesion.
-                        float metricValue = sumLesionMetricValues(calculationCollection, baselineUnitOfMeasure, metric);
-                        metricValues[i][j] = df.format(metricValue);
-                        metricSumsDouble[i] += metricValue;
-                    }
-
-        for(int i = 0; i < metricSumsDouble.length; i++)
-            metricSums[i] = df.format(metricSumsDouble[i]);
-
-        // Calculate the smallest metric sum recorded since the treatment started
-        // for each follow-up study.
-        double[] minMetricSum = new double[imageAnnotations.length];
-        for( int i = 0; i < minMetricSum.length; i++ )
-            minMetricSum[i] = min(metricSumsDouble, i);
-
-        // Calculate the response rates and response categories
-        // for every study after the baseline.
-        // This assumes that the first ImageAnnotation is the baseline.
-        responseRates = new String[imageAnnotations.length];
-        setResponseRatesSinceBaseline(new String[imageAnnotations.length]);
-        setResponseRatesSinceNadir(new String[imageAnnotations.length]);
-        responseCategories = new String[imageAnnotations.length];
-
-        // The response rate is only defined for follow-up studies.
-        responseRates[0] = "N/A";
-        getResponseRatesSinceBaseline()[0] = "N/A";
-        getResponseRatesSinceNadir()[0] = "N/A";
-
-        for(int i = 1; i < imageAnnotations.length; i++)
+        private Map<Date, Map<String, ImageAnnotation>> imageAnnotationsByNameAndStudyDate;
+        private Map<ImageAnnotation, Float> metricValuesByImageAnnotation = new HashMap<ImageAnnotation, Float>();
+        private Map<ImageAnnotation, String> anatomicEntitiesByImageAnnotation = new HashMap<ImageAnnotation, String>();
+        private List<String> sortedImageAnnotationNames = new ArrayList<String>();
+        private Map<String, String> anatomicEntityNamesByImageAnnotationName = new HashMap<String, String>();
+        private List<Date> sortedStudyDates = new ArrayList<Date>();
+        private Map<Date, Float> metricSumsByStudyDate = new HashMap<Date, Float>(),
+        						 responseRatesByStudyDate = new HashMap<Date, Float>();
+    	private String metric,
+    				   unitOfMeasure;
+    	
+    	public CalculationResult(String metric, String unitOfMeasure)
+    	{
+    		this.setMetric(metric);
+    		this.setUnitOfMeasure(unitOfMeasure);
+    		
+    	}
+    	
+        public String getResponseCategory(double responseRate)
         {
-            double changeInMetricSinceBaseline 		 = metricSumsDouble[i] - metricSumsDouble[0];
-            double changeInMetricSumSinceMinMetricSum = metricSumsDouble[i] - minMetricSum[i];
+            // Disappearance of target lesions.
+            if(responseRate == -1) return COMPLETE_RESPONSE;
 
-            getResponseRatesSinceBaseline()[i] = df.format(100 * changeInMetricSinceBaseline / metricSumsDouble[0]);
-            getResponseRatesSinceNadir()[i] = df.format(100 * changeInMetricSumSinceMinMetricSum / minMetricSum[i]);
+            // Reduction in sum of the longest diameter of target
+            // lesions since baseline.
+            if(responseRate <= -0.30) return PARTIAL_RESPONSE;
 
-            if(changeInMetricSinceBaseline < 0 && metricSumsDouble[0] != 0)
-            {
-                double responseRate = 100 * changeInMetricSinceBaseline / metricSumsDouble[0];
-                responseRates[i] = df.format(responseRate);
-                responseCategories[i] = getResponseCategory(responseRate);
-            }
+            // Increase in the sum of the longest diameter of target
+            // lesions since the smallest recorded sum.
+            if(responseRate >= 0.20) return PROGRESSIVE_DISEASE;
 
-            if(changeInMetricSumSinceMinMetricSum >= 0 && metricSumsDouble[i] != 0)
-            {
-                double responseRate = 100 * changeInMetricSumSinceMinMetricSum / minMetricSum[i];
-                responseRates[i] = df.format(responseRate);
-                responseCategories[i] = getResponseCategory(responseRate);
-            }
+            // Neither category fits, return stable disease.
+            return STABLE_DISEASE;
         }
+
+		public String getMetric()
+		{
+			return metric;
+		}
+
+		public void setMetric(String metric)
+		{
+			this.metric = metric;
+		}
+
+		public String getUnitOfMeasure()
+		{
+			return unitOfMeasure;
+		}
+
+		public void setUnitOfMeasure(String unitOfMeasure)
+		{
+			this.unitOfMeasure = unitOfMeasure;
+		}
+
+		public List<Date> getSortedStudyDates() {
+			return sortedStudyDates;
+		}
+
+		public void setSortedStudyDates(List<Date> sortedStudyDates) {
+			this.sortedStudyDates = sortedStudyDates;
+		}
+
+		@Override
+		public String toString()
+		{
+			StringBuffer sb = new StringBuffer();
+			sb.append("Metric: " + metric + "\n");
+			sb.append("Units:  " + unitOfMeasure + "\n\n");
+			
+			// Study dates across the top, with left most column for lesions.
+			sb.append(fillToNLength(15, ""));
+			for(Date studyDate : getSortedStudyDates())
+				sb.append(fillToNLength(35, studyDate.toString()));
+			
+			sb.append("\n");
+			
+	        for(String imageAnnotationName : sortedImageAnnotationNames)
+	        {
+	        	String anatomicEntityCodeMeaning = "";
+	        	if(getAnatomicEntityNamesByImageAnnotationName().containsKey(imageAnnotationName))
+	        		anatomicEntityCodeMeaning += getAnatomicEntityNamesByImageAnnotationName().get(imageAnnotationName);
+				sb.append(fillToNLength(15, imageAnnotationName + " " + anatomicEntityCodeMeaning));
+				
+				for(Date studyDate : sortedStudyDates)
+				{
+					Map<String, ImageAnnotation> imageAnnotationsByName = getImageAnnotationsByNameAndStudyDate().get(studyDate);
+					if(imageAnnotationsByName.containsKey(imageAnnotationName))
+					{
+						ImageAnnotation imageAnnotation = imageAnnotationsByName.get(imageAnnotationName);
+						Float metricValue = metricValuesByImageAnnotation.get(imageAnnotation);
+						if(metricValue != null)
+							sb.append(fillToNLength(35, metricValue.toString()));
+						else
+							sb.append(fillToNLength(35, "null"));
+					}
+					else
+					{
+						sb.append(fillToNLength(35, ""));
+					}
+				}
+				
+				sb.append("\n");
+	        }
+	        
+			sb.append(fillToNLength(15, ""));
+			for(Date studyDate : sortedStudyDates)
+			{
+				Float metricSum = metricSumsByStudyDate.get(studyDate);
+				sb.append(fillToNLength(35, metricSum.toString()));
+			}
+			sb.append("\n");
+			return sb.toString();
+		}
+		
+		private String fillToNLength(int n, String string)
+		{
+			for(int i = string.length(); i < n; i++)
+				string += " ";
+			return string;
+		}
+
+		public List<String> getSortedImageAnnotationNames() {
+			return sortedImageAnnotationNames;
+		}
+
+		public void setSortedImageAnnotationNames(List<String> sortedImageAnnotationNames) {
+			this.sortedImageAnnotationNames = sortedImageAnnotationNames;
+		}
+
+		public Map<ImageAnnotation, Float> getMetricValuesByImageAnnotation() {
+			return metricValuesByImageAnnotation;
+		}
+
+		public void setMetricValuesByImageAnnotation(
+				Map<ImageAnnotation, Float> metricValuesByImageAnnotation) {
+			this.metricValuesByImageAnnotation = metricValuesByImageAnnotation;
+		}
+
+		public Map<ImageAnnotation, String> getAnatomicEntitiesByImageAnnotation() {
+			return anatomicEntitiesByImageAnnotation;
+		}
+
+		public void setAnatomicEntitiesByImageAnnotation(
+				Map<ImageAnnotation, String> anatomicEntitiesByImageAnnotation) {
+			this.anatomicEntitiesByImageAnnotation = anatomicEntitiesByImageAnnotation;
+		}
+
+		public Map<Date, Float> getMetricSumsByStudyDate() {
+			return metricSumsByStudyDate;
+		}
+
+		public void setMetricSumsByStudyDate(Map<Date, Float> metricSumsByStudyDate) {
+			this.metricSumsByStudyDate = metricSumsByStudyDate;
+		}
+
+		public Map<Date, Map<String, ImageAnnotation>> getImageAnnotationsByNameAndStudyDate() {
+			return imageAnnotationsByNameAndStudyDate;
+		}
+
+		public void setImageAnnotationsByNameAndStudyDate(
+				Map<Date, Map<String, ImageAnnotation>> imageAnnotationsByNameAndStudyDate) {
+			this.imageAnnotationsByNameAndStudyDate = imageAnnotationsByNameAndStudyDate;
+		}
+
+		public Map<String, String> getAnatomicEntityNamesByImageAnnotationName() {
+			return anatomicEntityNamesByImageAnnotationName;
+		}
+
+		public void setAnatomicEntityNamesByImageAnnotationName(
+				Map<String, String> anatomicEntityNamesByImageAnnotationName) {
+			this.anatomicEntityNamesByImageAnnotationName = anatomicEntityNamesByImageAnnotationName;
+		}
+
+		public Map<Date, Float> getResponseRatesByStudyDate() {
+			return responseRatesByStudyDate;
+		}
+
+		public void setResponseRatesByStudyDate(
+				Map<Date, Float> responseRatesByStudyDate) {
+			this.responseRatesByStudyDate = responseRatesByStudyDate;
+		}
+    }
+    
+    public TumorAnalysisCalculator(Map<Date, List<ImageAnnotation>> imageAnnotationsByStudyDate)
+    {
+        this.imageAnnotationsByStudyDate = imageAnnotationsByStudyDate;
+    }
+    
+    public CalculationResult calculateRECIST(String metric, String unitOfMeasure)
+    {
+    	CalculationResult calculationResult = new CalculationResult(metric, unitOfMeasure);
+    	
+        Map<ImageAnnotation, Float> metricValuesByImageAnnotation = calculationResult.getMetricValuesByImageAnnotation();
+        Map<ImageAnnotation, String> anatomicEntitiesByImageAnnotation = calculationResult.getAnatomicEntitiesByImageAnnotation(); 
+        Map<String, String> anatomicEntityNamesByImageAnnotationName = calculationResult.getAnatomicEntityNamesByImageAnnotationName();
+        Map<Date, Float> metricSumsByStudyDate = calculationResult.getMetricSumsByStudyDate(),
+        			     responseRatesByStudyDate = calculationResult.getResponseRatesByStudyDate();
+    	final Set<String> imageAnnotationNames = new HashSet<String>(); 
+        
+        // Calculate the metric sum for each study date
+        for(Date studyDate : imageAnnotationsByStudyDate.keySet())
+        {
+        	metricSumsByStudyDate.put(studyDate, 0.0f);
+        	
+        	for(ImageAnnotation imageAnnotation : imageAnnotationsByStudyDate.get(studyDate))
+        	{
+        		imageAnnotationNames.add(imageAnnotation.getNameAttribute());
+        		
+                for( int k = 0; k < imageAnnotation.getNumberOfCalculationCollections(); k++)
+                {
+                    CalculationCollection calculationCollection = imageAnnotation.getCalculationCollection(k);
+
+                    Float metricValue = sumLesionMetricValues(calculationCollection, unitOfMeasure, metric);
+                    metricValuesByImageAnnotation.put(imageAnnotation, metricValue);
+                    metricSumsByStudyDate.put(studyDate, metricSumsByStudyDate.get(studyDate) + metricValue);
+                }
+                
+                if(imageAnnotation.getNumberOfAnatomicEntityCollections() > 0)
+                {
+                	String anatomicEntityCodeMeaning = imageAnnotation.getAnatomicEntityCollection(0).getAnatomicEntity(0).getCodeMeaning();
+                	
+                	anatomicEntitiesByImageAnnotation.put(imageAnnotation, anatomicEntityCodeMeaning);
+                	String imageAnnotationNameAttribute = imageAnnotation.getNameAttribute();
+                	if(!anatomicEntityNamesByImageAnnotationName.containsKey(imageAnnotationNameAttribute))
+                		anatomicEntityNamesByImageAnnotationName.put(imageAnnotationNameAttribute, anatomicEntityCodeMeaning);
+                }
+        	}
+        }
+
+        // Calculate the smallest metric sum recorded since the treatment started for each follow-up study.
+        Map<Date, Float> minMetricSumsByStudyDate = new HashMap<Date, Float>();
+        calculationResult.setSortedStudyDates(asSortedList(imageAnnotationsByStudyDate.keySet()));
+        List<Date> sortedStudyDates = calculationResult.getSortedStudyDates();
+        for(int i = 0; i < sortedStudyDates.size(); i++)
+        {
+        	Date studyDate = sortedStudyDates.get(i);
+        	
+        	float minMetric = Float.MAX_VALUE;
+        	for(int j = 0; j <= i; j++)
+        	{
+        		Date previousStudyDate = sortedStudyDates.get(j);
+        		float metricSum = metricSumsByStudyDate.get(previousStudyDate);
+        		
+        		if(metricSum < minMetric)
+        			minMetric = metricSum;
+        	}
+        	
+        	minMetricSumsByStudyDate.put(studyDate, minMetric);
+        }
+        
+        for(int i = 1; i < sortedStudyDates.size(); i++)
+        {
+        	Date studyDate = sortedStudyDates.get(i);
+        	Date baselineStudyDate = sortedStudyDates.get(0);
+        	
+        	float metricSum = metricSumsByStudyDate.get(studyDate);
+        	float baselineSum = metricSumsByStudyDate.get(baselineStudyDate);
+        	float minMetricSum = minMetricSumsByStudyDate.get(studyDate);
+        	
+        	float changeInMetricSinceBaseline = metricSum - baselineSum;
+            float changeInMetricSumSinceMinMetricSum = metricSum - minMetricSum;
+
+            float responseRate = 0.0f;
+
+            if(changeInMetricSinceBaseline < 0 && baselineSum > 0)
+            	responseRate = changeInMetricSinceBaseline / baselineSum;
+
+            if(changeInMetricSumSinceMinMetricSum >= 0 && minMetricSum >  0)
+                responseRate = changeInMetricSumSinceMinMetricSum / minMetricSum;
+            
+            responseRatesByStudyDate.put(studyDate, responseRate);
+        }
+    	
+    	// Store a sorted version of the image annotation names.
+        calculationResult.setSortedImageAnnotationNames(asSortedListWithComparator(imageAnnotationNames, new NaturalOrderComparator()));
+
+        // Create a map that groups lesion by their names and study dates.
+        calculationResult.setImageAnnotationsByNameAndStudyDate(new HashMap<Date, Map<String, ImageAnnotation>>());
+        Map<Date, Map<String, ImageAnnotation>> imageAnnotationsByNameAndStudyDate = calculationResult.getImageAnnotationsByNameAndStudyDate();
+		
+        for(Date studyDate : sortedStudyDates)
+        {
+        	if(!imageAnnotationsByNameAndStudyDate.containsKey(studyDate))
+        		imageAnnotationsByNameAndStudyDate.put(studyDate, new HashMap<String, ImageAnnotation>());
+        	
+        	for(ImageAnnotation imageAnnotation : imageAnnotationsByStudyDate.get(studyDate))
+        	{
+        		Map<String, ImageAnnotation> imageAnnotationsByName= imageAnnotationsByNameAndStudyDate.get(studyDate);
+        		String imageAnnotationName = imageAnnotation.getNameAttribute();
+        		if(!imageAnnotationsByName.containsKey(imageAnnotationName) || metricValuesByImageAnnotation.get(imageAnnotationsByName.get(imageAnnotationName)) == null)
+        			imageAnnotationsByName.put(imageAnnotationName, imageAnnotation);
+        	}
+        }
+        
+        return calculationResult;
     }
 
     private float sumLesionMetricValues(CalculationCollection calculationCollection, String targetUnits, String metric)
@@ -147,7 +345,7 @@ public class TumorAnalysisCalculator
                     CalculationResultCollection calculationResultCollection = calculation.getCalculationResultCollection(j);
                     for( int k = 0; k < calculationResultCollection.getNumberOfCalculationResults(); k++ )
                     {
-                        CalculationResult calculationResult = calculationResultCollection.getCalculationResult(k);
+                    	edu.stanford.isis.epad.plugin.lesiontracking.shared.CalculationResult calculationResult = calculationResultCollection.getCalculationResult(k);
                         UnitConversion unitConversion = new UnitConversion(calculationResult.getUnitOfMeasure(), targetUnits);
 
                         /**
@@ -184,37 +382,18 @@ public class TumorAnalysisCalculator
         }
         return sum;
     }
-
-    private String getResponseCategory(double responseRate)
-    {
-        // Disappearance of target lesions.
-        if(responseRate == -100)
-            return COMPLETE_RESPONSE;
-
-        // Reduction in sum of the longest diameter of target
-        // lesions since baseline.
-        if(responseRate <= -30)
-                return PARTIAL_RESPONSE;
-
-        // Increase in the sum of the longest diameter of target
-        // lesions since the smallest recorded sum.
-        if(responseRate >= 20)
-            return PROGRESSIVE_DISEASE;
-
-        // Neither category fits, return stable disease.
-        return STABLE_DISEASE;
+    
+    public static <T extends Comparable<? super T>> List<T> asSortedList(Collection<T> c) {
+      List<T> list = new ArrayList<T>(c);
+      java.util.Collections.sort(list);
+      return list;
     }
-
-    private double min(double[] f, int endOffset)
-    {
-        double min = Double.MAX_VALUE;
-        for( int i = 0; i < endOffset; i++ )
-        {
-            if( f[i] < min )
-                min = f[i];
-        }
-        return min;
-    }
+    
+    public static <T> List<T> asSortedListWithComparator(Collection<T> c, Comparator<T> comparator) {
+        List<T> list = new ArrayList<T>(c);
+        java.util.Collections.sort(list, comparator);
+        return list;
+      }
 
     private String getStudyUnits(ImageAnnotation imageAnnotation, String metric)
     {
@@ -240,101 +419,5 @@ public class TumorAnalysisCalculator
         }
 
         return "";
-    }
-
-    public void setBaselineUnitOfMeasure(String baselineUnitOfMeasure)
-    {
-        this.baselineUnitOfMeasure = baselineUnitOfMeasure;
-    }
-
-    public String getBaselineUnitOfMeasure()
-    {
-        return baselineUnitOfMeasure;
-    }
-
-    public void setMetric(String metric)
-    {
-        this.metric = metric;
-    }
-
-    public String getMetric()
-    {
-        return metric;
-    }
-
-    public void setMetricValues(String[][] metricValues)
-    {
-        this.metricValues = metricValues;
-    }
-
-    public String[][] getMetricValues()
-    {
-        return metricValues;
-    }
-
-    public void setResponseRates(String[] responseRates)
-    {
-        this.responseRates = responseRates;
-    }
-
-    public String[] getResponseRates()
-    {
-        return responseRates;
-    }
-
-    public void setStudyDates(String[] studyDates)
-    {
-        this.studyDates = studyDates;
-    }
-
-    public String[] getStudyDates()
-    {
-        return studyDates;
-    }
-
-    public void setMetricSums(double[] metricSumsDouble)
-    {
-        this.metricSumsDouble = metricSumsDouble;
-    }
-
-    public String[] getMetricSums()
-    {
-        return metricSums;
-    }
-
-    public double[] getMetricSumsDouble()
-    {
-        return metricSumsDouble;
-    }
-
-    public void setResponseCategories(String[] responseCategories)
-    {
-        this.responseCategories = responseCategories;
-    }
-
-    public String[] getResponseCategories()
-    {
-        return responseCategories;
-    }
-
-    public void setResponseRatesSinceBaseline(
-            String[] responseRatesSinceBaseline)
-    {
-        this.responseRatesSinceBaseline = responseRatesSinceBaseline;
-    }
-
-    public String[] getResponseRatesSinceBaseline()
-    {
-        return responseRatesSinceBaseline;
-    }
-
-    public void setResponseRatesSinceNadir(String[] responseRatesSinceNadir)
-    {
-        this.responseRatesSinceNadir = responseRatesSinceNadir;
-    }
-
-    public String[] getResponseRatesSinceNadir()
-    {
-        return responseRatesSinceNadir;
     }
 }

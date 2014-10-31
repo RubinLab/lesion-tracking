@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+import com.gargoylesoftware.htmlunit.javascript.host.Window;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -22,6 +23,9 @@ import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.user.client.ui.Frame;
+import com.google.gwt.user.client.ui.HTML;
+import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
@@ -46,14 +50,12 @@ public class LesionTrackingViewImpl extends Composite {
 	// seriesListBox = new ListBox(false),
 			annotationsListBox = new ListBox(), metricsListBox = new ListBox();
 
-	@UiField
-	public FlexTable recistFlexTable, radiologyImagesFlexTable,
-			recistChartsFlexTable;
-	@UiField
-	public Button downloadRECISTTableAsImageButton,
-			downloadRECISTChartAsImageButton;
-	@UiField
-	public FlowPanel annotationUploadFlowPanel;
+	//@UiField public FlexTable recistFlexTable, radiologyImagesFlexTable, recistChartsFlexTable;
+	
+	//@UiField public Button downloadRECISTTableAsImageButton, downloadRECISTChartAsImageButton, downloadWordDocumentButton;
+	@UiField public Button downloadWordDocumentButton;
+	@UiField public FlowPanel annotationUploadFlowPanel;
+	@UiField public HTML recistHTML;
 
 	@SuppressWarnings("deprecation")
 	public LesionTrackingViewImpl(LesionTracking lesionTracking) {
@@ -118,9 +120,12 @@ public class LesionTrackingViewImpl extends Composite {
 
 	@UiHandler("metricsListBox")
 	public void onMetricSelected(ChangeEvent changeEvent) {
+
+		downloadWordDocumentButton.setVisible(true);
+		/*
 		downloadRECISTTableAsImageButton.setVisible(true);
 		downloadRECISTChartAsImageButton.setVisible(true);
-
+		*/
 		int selectedIndex = metricsListBox.getSelectedIndex();
 		if (selectedIndex != -1) {
 			List<String> selectedMetrics = new ArrayList<String>();
@@ -130,8 +135,10 @@ public class LesionTrackingViewImpl extends Composite {
 					selectedMetrics.add(metricsListBox.getItemText(i));
 			lesionTracking.onMetricsSelected(selectedMetrics);
 		}
+		
 	}
 
+	/*
 	@UiHandler("downloadRECISTTableAsImageButton")
 	public void onDownloadAsRECISTTableButtonClicked(ClickEvent clickEvent) {
 		lesionTracking.onDownloadAsRECISTTableButtonClicked();
@@ -141,7 +148,12 @@ public class LesionTrackingViewImpl extends Composite {
 	public void onDownloadAsRECISTChartButtonClicked(ClickEvent clickEvent) {
 		lesionTracking.onDownloadAsRECISTTableButtonClicked();
 	}
-
+	*/
+	@UiHandler("downloadWordDocumentButton")
+	public void onDownloadWordDocumentButtonClicked(ClickEvent clickEvent) {
+		lesionTracking.onDownloadWordDocumentButtonClicked();
+	}
+	
 	public void setLabelText(String labelText) {
 	}
 
@@ -170,23 +182,28 @@ public class LesionTrackingViewImpl extends Composite {
 
 	public void loadAnnotationsList(List<String> annotations) {
 		annotationsListBox.clear();
-		radiologyImagesFlexTable.clear();
+		//radiologyImagesFlexTable.clear();
 		for (String annotation : annotations)
 			annotationsListBox.addItem(annotation);
 	}
 
 	public void loadMetricsList(List<String> metrics) {
 		metricsListBox.clear();
+		
+		/*
 		recistFlexTable.clear();
 		recistChartsFlexTable.clear();
 		downloadRECISTTableAsImageButton.setVisible(false);
 		downloadRECISTChartAsImageButton.setVisible(false);
-		radiologyImagesFlexTable.clear();
+		*/
+		
+		//radiologyImagesFlexTable.clear();
 		for (String metric : metrics)
 			metricsListBox.addItem(metric);
 	}
 
 	public void loadRECISTTable(String[][] recistTable) {
+		/*
 		recistFlexTable.removeAllRows();
 		for (String[] rows : recistTable) {
 			int rowIndex = recistFlexTable.insertRow(recistFlexTable
@@ -196,10 +213,12 @@ public class LesionTrackingViewImpl extends Composite {
 				recistFlexTable.setWidget(rowIndex, colIndex, new Label(col));
 			}
 		}
+		*/
 	}
 
 	public void setNumberTimePointsInStudy(String metricUnits,
 			int numberOfTimePoints) {
+		/*
 		recistFlexTable.removeAllRows();
 		recistFlexTable.insertRow(recistFlexTable.getRowCount());
 
@@ -213,9 +232,11 @@ public class LesionTrackingViewImpl extends Composite {
 		for (int i = 0; i < numberOfTimePoints - 1; i++)
 			recistFlexTable.setWidget(0, 3 + i, new RECISTTableTitleRowLabel(
 					"Follow Up " + (i + 1) + " (" + metricUnits + ")"));
+		*/
 	}
 
 	public void addLesion(Lesion lesion) {
+		/*
 		int row = recistFlexTable.insertRow(recistFlexTable.getRowCount());
 
 		Label lesionIDLabel = new RECISTTableVariableEntryLabel(
@@ -241,12 +262,14 @@ public class LesionTrackingViewImpl extends Composite {
 			recistFlexTable.setWidget(recistFlexTable.getRowCount() - 1, i + 2,
 					label);
 		}
+		*/
 	}
 
 	public void addResponseRows(String metric, String metricUnits,
 			String[] metricSums, String[] responseRates,
 			String[] responseRatesSinceBaseline,
 			String[] responseRatesSinceNadir, String[] responseCategories) {
+		/*
 		int metricNameRow = recistFlexTable.insertRow(recistFlexTable
 				.getRowCount());
 		int sumOfMetricsRow = recistFlexTable.insertRow(recistFlexTable
@@ -313,6 +336,7 @@ public class LesionTrackingViewImpl extends Composite {
 			recistFlexTable.setWidget(responseCategoryRow, i + 1,
 					new RECISTTableTitleRowLabel(responseCategories[i]));
 		}
+		*/
 	}
 
 	private class RECISTTableTitleRowLabel extends Label {
@@ -363,6 +387,7 @@ public class LesionTrackingViewImpl extends Composite {
 			RECISTTableVariableEntryLabel recistTableVariableEntryLabel = (RECISTTableVariableEntryLabel) clickEvent
 					.getSource();
 
+			/*
 			int row = recistTableVariableEntryLabel.getRow();
 
 			for (int i = 1; i < recistFlexTable.getRowCount() - 2; i++)
@@ -383,6 +408,7 @@ public class LesionTrackingViewImpl extends Composite {
 				wadoURLs[i] = lesion.getWADOURL(i);
 
 			displayRadiologyImages(wadoURLs);
+			*/
 		}
 	}
 
@@ -399,7 +425,7 @@ public class LesionTrackingViewImpl extends Composite {
 		public void onClick(ClickEvent clickEvent) {
 			RECISTTableVariableEntryLabel recistTableVariableEntryLabel = (RECISTTableVariableEntryLabel) clickEvent
 					.getSource();
-
+			/*
 			int row = recistTableVariableEntryLabel.getRow();
 
 			for (int i = 1; i < recistFlexTable.getRowCount() - 2; i++)
@@ -416,10 +442,13 @@ public class LesionTrackingViewImpl extends Composite {
 
 			String wadoURL = lesion.getWADOURL(temporalIndex);
 			displayRadiologyImages(new String[] { wadoURL });
+			*/
 		}
 	}
 
 	public void displayRadiologyImages(String[] radiologyImageURLs) {
+		
+		/*
 		radiologyImagesFlexTable.removeAllRows();
 		radiologyImagesFlexTable.insertRow(radiologyImagesFlexTable
 				.getRowCount());
@@ -430,9 +459,11 @@ public class LesionTrackingViewImpl extends Composite {
 			radiologyImagesFlexTable.setWidget(0, colIndex, image);
 			colIndex++;
 		}
+		*/
 	}
 
 	public void showRECISTCharts(List<RECISTChartViewImpl> recistChartViewImpls) {
+		/*
 		recistChartsFlexTable.removeAllRows();
 		recistChartsFlexTable.insertRow(recistChartsFlexTable.getRowCount());
 		int rowIndex = 0;
@@ -440,6 +471,12 @@ public class LesionTrackingViewImpl extends Composite {
 			recistChartsFlexTable.setWidget(rowIndex, 0, recistChartViewImpl);
 			rowIndex++;
 		}
+		*/
 	}
 
+	public void showRECISTHTML(String recistHTML) {
+		recistHTML = recistHTML.replaceAll("<html>", "").replaceAll("</html>", "");
+		recistHTML = recistHTML.replaceAll("<body>", "").replaceAll("</body>", "");
+		this.recistHTML.setHTML(recistHTML);
+	}
 }
