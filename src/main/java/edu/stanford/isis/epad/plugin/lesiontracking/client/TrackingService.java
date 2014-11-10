@@ -1,6 +1,5 @@
 package edu.stanford.isis.epad.plugin.lesiontracking.client;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -23,13 +22,7 @@ public interface TrackingService extends RemoteService {
 	public String getRECISTHTML(
 			String projectID, String patientID, String username,
 			String server, String session, String metric) throws Exception;
-
-	//public String downloadRECISTTableImage(CalculationResult cr);
-
-	//public String downloadRECISTChartImage(CalculationResult cr);
-
+	
 	public String setClient(String username);
-
-	public String requestSessionString(ArrayList<String> login);
 
 }

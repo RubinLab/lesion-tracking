@@ -19,6 +19,10 @@ public abstract class AIMElement implements IsSerializable
                          IMAGE_REFERENCE 			   = "ImageReference",
                          IMAGE_SERIES              	   = "ImageSeries",
                          IMAGE_STUDY				   = "ImageStudy",
+                         IMAGING_OBSERVATION_CHARACTERISTIC = "ImagingObservationCharacteristic",
+                         IMAGING_OBSERVATION_COLLECTION = "ImagingObservationCollection",
+                         IMAGING_OBSERVATION_CHARACTERISTIC_COLLECTION = "ImagingObservationCharacteristicCollection",
+                         IMAGING_OBSERVATION		   = "ImagingObservation",
                          STUDY 						   = "Study",
                          SERIES 					   = "Series",
                          CALCULATION_DATA_COLLECTION   = "CalculationDataCollection",
@@ -43,6 +47,18 @@ public abstract class AIMElement implements IsSerializable
         if(name.equalsIgnoreCase(ANATOMIC_ENTITY))
             return new AnatomicEntity();
 
+        if(name.equalsIgnoreCase(IMAGING_OBSERVATION_CHARACTERISTIC))
+        	return new ImagingObservationCharacteristic();
+        
+        if(name.equalsIgnoreCase(IMAGING_OBSERVATION_COLLECTION))
+        	return new ImagingObservationCollection();
+        
+        if(name.equalsIgnoreCase(IMAGING_OBSERVATION_CHARACTERISTIC_COLLECTION))
+        	return new ImagingObservationCharacteristicCollection();
+        
+        if(name.equalsIgnoreCase(IMAGING_OBSERVATION))
+        	return new ImagingObservation();
+        
         if(name.equalsIgnoreCase(GEOMETRIC_SHAPE_COLLECTION))
             return new GeometricShapeCollection();
 

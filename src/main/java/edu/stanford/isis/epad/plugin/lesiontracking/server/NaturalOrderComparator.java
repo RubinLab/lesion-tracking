@@ -24,9 +24,7 @@ package edu.stanford.isis.epad.plugin.lesiontracking.server;
  3. This notice may not be removed or altered from any source distribution.
  */
 
-import java.util.*;
-
-import edu.stanford.isis.epad.plugin.lesiontracking.shared.ImageAnnotation;
+import java.util.Comparator;
 
 public class NaturalOrderComparator implements Comparator<String>
 {

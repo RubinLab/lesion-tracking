@@ -148,6 +148,7 @@ public class AIMFileReader
 
         Element element = (Element)node;
         NamedNodeMap attributesList = element.getAttributes();
+
         String[] allAIMAttributeNames = aimElement.getAllAIMAttributeNames();
         for(int i = 0; i < attributesList.getLength(); i++)
         {

@@ -1,6 +1,5 @@
 package edu.stanford.isis.epad.plugin.lesiontracking.client;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -22,14 +21,5 @@ public interface TrackingServiceAsync {
 			String server, String session, String metric,
 			AsyncCallback<String> callback);
 
-	//public void downloadRECISTTableImage(CalculationResult cr,
-	//		AsyncCallback<String> asyncCallback);
-
-	//public void downloadRECISTChartImage(CalculationResult cr,
-	//		AsyncCallback<String> asyncCallback);
-
 	public void setClient(String username, AsyncCallback<String> asyncCallback);
-
-	public void requestSessionString(ArrayList<String> login,
-			AsyncCallback<String> asyncCallback);
 }

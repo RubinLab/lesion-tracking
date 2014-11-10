@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import edu.stanford.isis.epad.plugin.lesiontracking.client.recist.UnitConversion;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.Calculation;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.CalculationCollection;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.CalculationData;
@@ -383,41 +382,15 @@ public class TumorAnalysisCalculator
         return sum;
     }
     
-    public static <T extends Comparable<? super T>> List<T> asSortedList(Collection<T> c) {
+    private static <T extends Comparable<? super T>> List<T> asSortedList(Collection<T> c) {
       List<T> list = new ArrayList<T>(c);
       java.util.Collections.sort(list);
       return list;
     }
     
-    public static <T> List<T> asSortedListWithComparator(Collection<T> c, Comparator<T> comparator) {
+    private static <T> List<T> asSortedListWithComparator(Collection<T> c, Comparator<T> comparator) {
         List<T> list = new ArrayList<T>(c);
         java.util.Collections.sort(list, comparator);
         return list;
       }
-
-    private String getStudyUnits(ImageAnnotation imageAnnotation, String metric)
-    {
-        for(int j = 0; j < imageAnnotation.getNumberOfCalculationCollections(); j++)
-        {
-            CalculationCollection calculationCollection = imageAnnotation.getCalculationCollection(j);
-            for(int k = 0; k < calculationCollection.getNumberOfCalculations(); k++)
-            {
-                Calculation calculation = calculationCollection.getCalculation(k);
-
-                /** We want the units of this calculation type. **/
-                if(metric.equalsIgnoreCase(calculation.getDescription()) || metric.equalsIgnoreCase(calculation.getType()))
-                {
-                    for(int l = 0; l < calculation.getNumberOfCalculationResultCollections(); l++)
-                    {
-                        CalculationResultCollection calculationResultCollection = calculation.getCalculationResultCollection(l);
-
-                        for( int m = 0; m < calculationResultCollection.getNumberOfCalculationResults(); )
-                            return calculationResultCollection.getCalculationResult(m).getUnitOfMeasure();
-                    }
-                }
-            }
-        }
-
-        return "";
-    }
 }

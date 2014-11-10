@@ -1,6 +1,5 @@
 <ui:UiBinder xmlns:ui='urn:ui:com.google.gwt.uibinder'
 xmlns:g='urn:import:com.google.gwt.user.client.ui'
-xmlns:r='urn:import:edu.stanford.isis.epad.plugin.lesiontracking.client.chart'
 xmlns:m='urn:import:gwtupload.client'>
 
 <ui:style src="LesionTrackingViewImpl.css"/>

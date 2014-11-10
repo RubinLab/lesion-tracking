@@ -2,13 +2,14 @@ package edu.stanford.isis.epad.plugin.lesiontracking.shared;
 
 public class ImageAnnotation extends AIMElement
 {
-    private static final String[] ALL_ELEMENT_NAMES = { ANATOMIC_ENTITY_COLLECTION, GEOMETRIC_SHAPE_COLLECTION, CALCULATION_COLLECTION, PATIENT, PERSON, IMAGE_REFERENCE_COLLECTION };
+    private static final String[] ALL_ELEMENT_NAMES = { ANATOMIC_ENTITY_COLLECTION, IMAGING_OBSERVATION_COLLECTION, GEOMETRIC_SHAPE_COLLECTION, CALCULATION_COLLECTION, PATIENT, PERSON, IMAGE_REFERENCE_COLLECTION };
     private static final int ANATOMIC_ENTITY_COLLECTION_INDEX = 0,
-                             GEOMETRIC_SHAPE_COLLECTION_INDEX = 1,
-                             CALCULATION_COLLECTION_INDEX     = 2,
-                             PATIENT_INDEX 					  = 3,
-                             PERSON_INDEX					  = 4,
-                             IMAGE_REFERENCE_COLLECTION_INDEX = 5;
+    						 IMAGING_OBSERVATION_COLLECTION_INDEX   = 1,
+                             GEOMETRIC_SHAPE_COLLECTION_INDEX = 2,
+                             CALCULATION_COLLECTION_INDEX     = 3,
+                             PATIENT_INDEX 					  = 4,
+                             PERSON_INDEX					  = 5,
+                             IMAGE_REFERENCE_COLLECTION_INDEX = 6;
 
     private static final String[] ALL_ATTRIBUTE_NAMES = { AIMAttribute.NAME, AIMAttribute.UNIQUE_IDENTIFIER };
     private static final int NAME_INDEX = 0,
@@ -41,6 +42,16 @@ public class ImageAnnotation extends AIMElement
         return (AnatomicEntityCollection)getAllAIMElements().get(ANATOMIC_ENTITY_COLLECTION_INDEX).get(i);
     }
 
+    public int getNumberOfImagingObservationCollections()
+    {
+        return getAllAIMElements().get(IMAGING_OBSERVATION_COLLECTION_INDEX).size();
+    }
+
+    public ImagingObservationCollection getImagingObservationCollection(int i)
+    {
+        return (ImagingObservationCollection)getAllAIMElements().get(IMAGING_OBSERVATION_COLLECTION_INDEX).get(i);
+    }
+    
     public int getNumberOfGeometricShapeCollections()
     {
         return getAllAIMElements().get(GEOMETRIC_SHAPE_COLLECTION_INDEX).size();
