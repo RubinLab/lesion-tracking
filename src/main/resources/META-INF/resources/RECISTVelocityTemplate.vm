@@ -1,0 +1,146 @@
+<html>
+	<body>
+		Patient $patient_name
+		
+		<br />
+		<br />
+		RECIST (Version = 1.1) Tumor Measurements
+		<br />
+		<br />
+		
+		$physician_name
+		<br />
+		<br />
+		
+		$date
+		<br />
+		<br />
+		
+		<table cellpadding='10' style='border-collapse: collapse; padding: 0px;'>
+			<tr>
+				<td style='vertical-align: top; font-weight: bold; border: 2px solid black;'>Site / Target Lesion(s)<br/><br/>Anatomic location</td>
+				#foreach ($studyDate in $studyDates)
+				<td style='border: 2px solid black;'>
+					Scan date:<br /><span style='color: red; font-weight: bold;'>$studyDate</span><br /><br />
+					Measurement ($units)
+				</td>
+				#end
+			</tr>
+				
+			#foreach ($imageAnnotationName in $sortedImageAnnotationNames)
+			<tr>
+				#foreach ($studyDate in $studyDates)
+					#if ( 0 == $velocityCount - 1 )
+					<td style='border: 2px solid black;'>
+						$imageAnnotationName<br /><br />
+						#if ($anatomicEntityNamesByImageAnnotationName.containsKey($imageAnnotationName))
+							$anatomicEntityNamesByImageAnnotationName.get($imageAnnotationName)
+						#end
+					</td>
+					#end
+					#if ($imageAnnotationsByNameAndStudyDate.get($studyDate).containsKey($imageAnnotationName))
+						<td style='border: 2px solid black;'>
+							#if ( $metricValuesByImageAnnotation.get($imageAnnotationsByNameAndStudyDate.get($studyDate).get($imageAnnotationName)) )
+								$metricValuesByImageAnnotation.get($imageAnnotationsByNameAndStudyDate.get($studyDate).get($imageAnnotationName))
+							#else
+								Lesion annotation present, but no value recorded.
+							#end
+						</td>
+					#else
+						<td style='border: 2px solid black;'>Lesion annotation not present.</td>
+					#end
+				#end
+			</tr>
+			#end
+			
+			<tr>
+				<td style='font-weight: bold; border: 2px solid black;'>
+					Sum of Target Lesion ($units):
+				</td>
+				#foreach ($studyDate in $studyDates)
+				<td style='border: 2px solid black;'>
+					#if ($metricSumsByStudyDate.containsKey($studyDate))
+						$metricSumsByStudyDate.get($studyDate)
+					#end
+				</td>
+				#end
+			</tr>
+			
+			<tr>
+				<td style='border: 2px solid black;'>
+					<span style='font-weight: bold;'>Target Lesion Assessment:</span><br/>
+					<span style='font-weight: bold; color: red; text-decoration: underline;'>Choose ONE:</span>
+					<br/>
+						CR, PR, SD, PD<br/>
+						Not Assessed<br/>
+						Indeterminate<br/>
+						No Target Lesion at Baseline<br/>
+
+				</td>
+				#foreach ($studyDate in $studyDates)
+				<td style='border: 2px solid black;'>
+					#if ($responseRatesByStudyDate.containsKey($studyDate))
+						$cr.getResponseCategory($responseRatesByStudyDate.get($studyDate))
+					#end
+				</td>
+				#end
+			</tr>
+			
+			<tr>
+				<td style='background-color: #D9D9D9; border: 2px solid black;'>
+					<span style='font-weight: bold;'>Non-Target Lesion(s)<br/>Non-measurable sites</span>
+				</td>
+				#foreach ($studyDate in $studyDates)
+				<td style='background-color: #D9D9D9; border: 2px solid black;'>
+				</td>
+				#end
+			</tr>
+			
+			#foreach ($imageAnnotationName in $sortedImageAnnotationNames)
+			<tr>
+				#foreach ($studyDate in $studyDates)
+					#if ( 0 == $velocityCount - 1 )
+					<td style='border: 2px solid black;'>
+						$imageAnnotationName<br /><br />
+						#if ($anatomicEntityNamesByImageAnnotationName.containsKey($imageAnnotationName))
+							$anatomicEntityNamesByImageAnnotationName.get($imageAnnotationName)
+						#end
+					</td>
+					#end
+					#if ($imageAnnotationsByNameAndStudyDate.get($studyDate).containsKey($imageAnnotationName))
+						<td style='border: 2px solid black;'>
+							#if ( $metricValuesByImageAnnotation.get($imageAnnotationsByNameAndStudyDate.get($studyDate).get($imageAnnotationName)) )
+								$metricValuesByImageAnnotation.get($imageAnnotationsByNameAndStudyDate.get($studyDate).get($imageAnnotationName))
+							#else
+								Lesion annotation present, but no value recorded.
+							#end
+						</td>
+					#else
+						<td style='border: 2px solid black;'>Lesion annotation not present.</td>
+					#end
+				#end
+			</tr>
+			#end	
+			
+			<tr>
+				<td style='border: 2px solid black;'>
+					<span style='font-weight: bold;'>Non-Target Lesion Assessment:</span><br/>
+					<span style='font-weight: bold; color: red; text-decoration: underline;'>Choose ONE:</span>
+					<br/>
+						CR, PR, SD, PD<br/>
+						Not Assessed<br/>
+						Indeterminate<br/>
+						No Target Lesion at Baseline<br/>
+
+				</td>
+				#foreach ($studyDate in $studyDates)
+				<td style='border: 2px solid black;'>
+					#if ($responseRatesByStudyDate.containsKey($studyDate))
+						$cr.getResponseCategory($responseRatesByStudyDate.get($studyDate))
+					#end
+				</td>
+				#end
+			</tr>
+		</table>
+	</body>
+<html>

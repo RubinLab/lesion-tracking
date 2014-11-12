@@ -19,6 +19,14 @@
 	background-color: #f0f0f0;
 }
 
+.downloadWordDocumentButton {
+	padding: 5px;
+	width: 200px;
+	font-size: 16px;
+	border-radius: 15px;
+	cursor: pointer;
+}
+
 .containingBox {
 	padding: 12.5px;
 	height: auto;
@@ -47,12 +55,15 @@
 .innerColumnLeft {
 	text-align: center;
 	width: 19%;
+	height: auto;
 }
 
 .innerColumnRight {
 	text-align: center;
-	height: 350px;
-	width: 80%;
+	height: auto;
+	width: 76%;
+	padding-left: 2%;
+	padding-right: 2%;
 }
 
 .innerColumnOfRightColumn {
