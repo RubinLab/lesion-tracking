@@ -130,7 +130,7 @@ public class LesionTracking implements EntryPoint {
 		this.patientID = patientID;
 		
 		trackingServiceAsync.getImageAnnotationsForPatient(projectID,
-				patientID, username, session, server,
+				patientID, username, session, server, null,
 				new AsyncCallback<Map<Date, List<ImageAnnotation>>>() {
 					@Override
 					public void onFailure(Throwable caught) {

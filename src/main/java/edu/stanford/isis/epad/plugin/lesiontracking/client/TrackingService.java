@@ -17,7 +17,7 @@ public interface TrackingService extends RemoteService {
 
 	public  Map<Date, List<ImageAnnotation>> getImageAnnotationsForPatient(
 			String projectID, String patientID, String username,
-			String session, String server) throws Exception;
+			String session, String server, Boolean isNonTarget) throws Exception;
 	
 	public String getRECISTHTML(
 			String projectID, String patientID, String username,

@@ -280,11 +280,29 @@ public class TumorAnalysisCalculator
         	
         	minMetricSumsByStudyDate.put(studyDate, minMetric);
         }
-        
+
+    	
+    	// Get a set of the baseline lesion names.
+    	Date baselineStudyDate = sortedStudyDates.get(0);
+    	
         for(int i = 1; i < sortedStudyDates.size(); i++)
         {
         	Date studyDate = sortedStudyDates.get(i);
-        	Date baselineStudyDate = sortedStudyDates.get(0);
+        	
+        	// Verify that all lesions present in the baseline are present at this study date.
+        	boolean missingOne = false;
+        	Set<String> currentStudyDateImageAnnotationNames = new HashSet<String>();
+        	for(ImageAnnotation imageAnnotation : imageAnnotationsByStudyDate.get(studyDate))
+        		currentStudyDateImageAnnotationNames.add(imageAnnotation.getNameAttribute());
+        	for(ImageAnnotation imageAnnotation : imageAnnotationsByStudyDate.get(baselineStudyDate))
+        		if(!currentStudyDateImageAnnotationNames.contains(imageAnnotation.getNameAttribute()))
+        		{
+        			missingOne = true;
+        			break;
+        		}
+        	
+        	if(missingOne)
+        		continue;
         	
         	float metricSum = metricSumsByStudyDate.get(studyDate);
         	float baselineSum = metricSumsByStudyDate.get(baselineStudyDate);
@@ -293,14 +311,22 @@ public class TumorAnalysisCalculator
         	float changeInMetricSinceBaseline = metricSum - baselineSum;
             float changeInMetricSumSinceMinMetricSum = metricSum - minMetricSum;
 
-            float responseRate = 0.0f;
+            
+            Date lastStudyDate = sortedStudyDates.get(i-1);
+            float lastStudyDateMetricSum = metricSumsByStudyDate.get(lastStudyDate);
 
+            float responseRate = 0.0f;
+            if(lastStudyDateMetricSum > 0)
+            	responseRate = 100 * (metricSum - baselineSum) / baselineSum;
+            /*
             if(changeInMetricSinceBaseline < 0 && baselineSum > 0)
             	responseRate = changeInMetricSinceBaseline / baselineSum;
 
             if(changeInMetricSumSinceMinMetricSum >= 0 && minMetricSum >  0)
                 responseRate = changeInMetricSumSinceMinMetricSum / minMetricSum;
+            */
             
+            System.out.println("Response rate: " + responseRate);
             responseRatesByStudyDate.put(studyDate, responseRate);
         }
     	

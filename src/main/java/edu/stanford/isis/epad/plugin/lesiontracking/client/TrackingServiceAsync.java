@@ -13,10 +13,12 @@ public interface TrackingServiceAsync {
 	public void getPatientNames(String projectID, String username,
 			String session, String server, AsyncCallback<String> asyncCallback);
 
+	
 	void getImageAnnotationsForPatient(String projectID, String patientID,
-			String username, String session, String server,
+			String username, String session, String server,  Boolean isNonTarget,
 			AsyncCallback<Map<Date, List<ImageAnnotation>>> asyncCallback);
 
+	
 	void getRECISTHTML(String projectID, String patientID, String username,
 			String server, String session, String metric,
 			AsyncCallback<String> callback);
