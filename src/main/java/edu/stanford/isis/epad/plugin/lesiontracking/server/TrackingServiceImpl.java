@@ -85,7 +85,7 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 
 		client = new DefaultHttpClient();
 
-		setSessionCookie(server, client, session);
+		setSessionCookie(username, server, client, session);
 
 		HttpGet get = new HttpGet(request);
 
@@ -350,7 +350,8 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 	public static void main(String[] args) throws Exception {
 		TrackingServiceImpl trackingServiceImpl = new TrackingServiceImpl();
 		
-		trackingServiceImpl.getRECISTHTML("aaron", "7", "admin", "http://epad-dev5.stanford.edu:8080", "68873466F59BFFD24339B20EC5F5C97D", "LineLength");
+		//trackingServiceImpl.getRECISTHTML("aaron", "7", "admin", "http://epad-dev5.stanford.edu:8080", "68873466F59BFFD24339B20EC5F5C97D", "LineLength");
+		trackingServiceImpl.getRECISTHTML("RECIST", "7", "admin", "https://epad-public.stanford.edu", "FD18E22C7A2A98C2446453D397C6F803", "LineLength");
 	}
 
 	
@@ -388,14 +389,19 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 	}
 	
 	// set the session cookie in the http client
-	private void setSessionCookie(String serverProxy, DefaultHttpClient client, String session) {
+	private void setSessionCookie(String username, String serverProxy, DefaultHttpClient client, String session) {
 
 		//String serverProxy = "http://epad-dev5.stanford.edu:8080";
 		
-		String server = serverProxy.replace("http://", "")
-				.replace(":8080", "");
+		String server;
+		if(serverProxy.contains("http://"))
+			server = serverProxy.replace("http://", "").replace(":8080", "");
+		else
+			server = serverProxy.replace("https://", "").replace(":8080", "");
+		
+		
 
-		String path = "/epad";
+		String path = "/epad/";
 
 		CookieStore cookieStore = client.getCookieStore();
 
@@ -407,7 +413,7 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 
 		cookieStore.addCookie(cookie);
 		
-		BasicClientCookie admincookie = new BasicClientCookie("ePADLoggedInUser", "admin");
+		BasicClientCookie admincookie = new BasicClientCookie("ePADLoggedInUser", username);
 		admincookie.setVersion(0);
 
 		admincookie.setDomain(server);
