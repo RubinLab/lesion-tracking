@@ -8,7 +8,9 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
+import java.text.DateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -38,6 +40,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
+import com.ibm.icu.text.DecimalFormat;
 
 import edu.stanford.isis.epad.plugin.lesiontracking.client.TrackingService;
 import edu.stanford.isis.epad.plugin.lesiontracking.server.TumorAnalysisCalculator.CalculationResult;
@@ -48,7 +51,16 @@ import edu.stanford.isis.epad.plugin.lesiontracking.shared.ImagingObservationCol
 
 public class TrackingServiceImpl extends RemoteServiceServlet implements
 		TrackingService {
-	
+
+	private static final String	TARGET_LESIONS = "Target Lesion Present Lesion",
+			 			 		NON_TARGET_LESIONS = "Non-Target";
+	private static final DecimalFormat df = new DecimalFormat();
+	private static final DateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
+	static
+	{
+		df.setMaximumFractionDigits(2);
+		df.setMinimumFractionDigits(2);
+	}
 	private static final long serialVersionUID = 1830906991196368571L;
 	public static final String LIST = "list", VALUES = "value",
 			PERSON = "Person", IMAGE_ANNOTATION = "ImageAnnotation";
@@ -73,7 +85,7 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 
 		client = new DefaultHttpClient();
 
-		setSessionCookie(server, client, session);
+		setSessionCookie(username, server, client, session);
 
 		HttpGet get = new HttpGet(request);
 
@@ -124,7 +136,7 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 
 	public Map<Date, List<ImageAnnotation>> getImageAnnotationsForPatient(
 			String projectID, String patientID, String username,
-			String session, String server) throws Exception {
+			String session, String server, Boolean isNonTarget) throws Exception {
 
 		logger.info("Calling new getImageAnnotationsForPatient");
 		logger.info("getImageAnnotationsForPatient " + projectID + " " + username + " " + session + " " + server);
@@ -231,14 +243,23 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 			}
 			
 			System.out.println(targetLesionFlag);
-			if("target".equals(targetLesionFlag))
+			
+			if(isNonTarget == null)
+				targetImageAnnotationsByStudyDate.get(studyDate).add(imageAnnotation);
+			else
+			{
+				String targetString = targetLesionFlag.toLowerCase();
+				if(isNonTarget && targetString.contains("non-target"))
 					targetImageAnnotationsByStudyDate.get(studyDate).add(imageAnnotation);
+				else if(!isNonTarget && !targetString.contains("non-target") && targetString.contains("target"))
+					targetImageAnnotationsByStudyDate.get(studyDate).add(imageAnnotation);
+			}
 		}
 
 		return targetImageAnnotationsByStudyDate;
 	}
 
-	public String renderDocument(String patientName, String physicianName, Date date, CalculationResult calculationResult)
+	public String renderDocument(String patientName, String physicianName, Date date, CalculationResult targetCalculationResult, CalculationResult nonTargetCalculationResult)
 	{
         try {
 
@@ -258,20 +279,37 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
             
         logger.info("Setting up Velocity context.");
         VelocityContext context = new VelocityContext();
+        context.put("df", df); // Decimal formatter.
+        context.put("sdf", sdf); // Date formatter.
+        context.put("TARGET_LESIONS", TARGET_LESIONS);
+        context.put("NON_TARGET_LESIONS", NON_TARGET_LESIONS);
+        
         context.put("patient_name", patientName);
         context.put("physician_name", physicianName);
         context.put("date", date);
-        context.put("imageAnnotationsByNameAndStudyDate", calculationResult.getImageAnnotationsByNameAndStudyDate());
-        context.put("metricValuesByImageAnnotation", calculationResult.getMetricValuesByImageAnnotation());
-        context.put("studyDates", calculationResult.getSortedStudyDates());
-        context.put("sortedImageAnnotationNames", calculationResult.getSortedImageAnnotationNames());
-        context.put("anatomicEntityNamesByImageAnnotationName", calculationResult.getAnatomicEntityNamesByImageAnnotationName());
-        context.put("metricValuesByImageAnnotation", calculationResult.getMetricValuesByImageAnnotation());
-        context.put("metricSumsByStudyDate", calculationResult.getMetricSumsByStudyDate());
-        context.put("anatomicEntitiesByImageAnnotation", calculationResult.getAnatomicEntitiesByImageAnnotation());
-        context.put("units", calculationResult.getUnitOfMeasure());
-        context.put("responseRatesByStudyDate", calculationResult.getResponseRatesByStudyDate());
-        context.put("cr", calculationResult);
+        context.put("imageAnnotationsByNameAndStudyDate", targetCalculationResult.getImageAnnotationsByNameAndStudyDate());
+        context.put("metricValuesByImageAnnotation", targetCalculationResult.getMetricValuesByImageAnnotation());
+        context.put("studyDates", targetCalculationResult.getSortedStudyDates());
+        context.put("sortedImageAnnotationNames", targetCalculationResult.getSortedImageAnnotationNames());
+        context.put("anatomicEntityNamesByImageAnnotationName", targetCalculationResult.getAnatomicEntityNamesByImageAnnotationName());
+        context.put("metricValuesByImageAnnotation", targetCalculationResult.getMetricValuesByImageAnnotation());
+        context.put("metricSumsByStudyDate", targetCalculationResult.getMetricSumsByStudyDate());
+        context.put("anatomicEntitiesByImageAnnotation", targetCalculationResult.getAnatomicEntitiesByImageAnnotation());
+        context.put("units", targetCalculationResult.getUnitOfMeasure());
+        context.put("responseRatesByStudyDate", targetCalculationResult.getResponseRatesByStudyDate());
+        context.put("cr", targetCalculationResult);
+        
+        context.put("nt_imageAnnotationsByNameAndStudyDate", nonTargetCalculationResult.getImageAnnotationsByNameAndStudyDate());
+        context.put("nt_metricValuesByImageAnnotation", nonTargetCalculationResult.getMetricValuesByImageAnnotation());
+        context.put("nt_studyDates", nonTargetCalculationResult.getSortedStudyDates());
+        context.put("nt_sortedImageAnnotationNames", nonTargetCalculationResult.getSortedImageAnnotationNames());
+        context.put("nt_anatomicEntityNamesByImageAnnotationName", nonTargetCalculationResult.getAnatomicEntityNamesByImageAnnotationName());
+        context.put("nt_metricValuesByImageAnnotation", nonTargetCalculationResult.getMetricValuesByImageAnnotation());
+        context.put("nt_metricSumsByStudyDate", nonTargetCalculationResult.getMetricSumsByStudyDate());
+        context.put("nt_anatomicEntitiesByImageAnnotation", nonTargetCalculationResult.getAnatomicEntitiesByImageAnnotation());
+        context.put("nt_units", nonTargetCalculationResult.getUnitOfMeasure());
+        context.put("nt_responseRatesByStudyDate", nonTargetCalculationResult.getResponseRatesByStudyDate());
+        context.put("nt_cr", targetCalculationResult);
         
         
         writer = new StringWriter();
@@ -300,7 +338,6 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 			e.printStackTrace();
 		}
 
-		logger.info("Returning [" + writer.toString() + "].");
         return writer.toString();
 		} catch (Exception e) {
 			logger.info(ExceptionUtils.getStackTrace(e));
@@ -309,10 +346,12 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 		
 	}
 	
+	
 	public static void main(String[] args) throws Exception {
 		TrackingServiceImpl trackingServiceImpl = new TrackingServiceImpl();
 		
-		trackingServiceImpl.getRECISTHTML("aaron", "7", "admin", "http://epad-dev5.stanford.edu:8080", "83706BD0DED5E1848BD0861CBF98AD2F", "LineLength");
+		//trackingServiceImpl.getRECISTHTML("aaron", "7", "admin", "http://epad-dev5.stanford.edu:8080", "68873466F59BFFD24339B20EC5F5C97D", "LineLength");
+		trackingServiceImpl.getRECISTHTML("RECIST", "7", "admin", "https://epad-public.stanford.edu", "FD18E22C7A2A98C2446453D397C6F803", "LineLength");
 	}
 
 	
@@ -332,25 +371,37 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 		logger.info("Getting RECIST HTML");
 		
 		getPatientNames(projectID, username, session, server);
-		Map<Date,List<ImageAnnotation>> imageAnnotationsByStudyDate = getImageAnnotationsForPatient(projectID, patientID, username, session, server);
-		// Perform a calculation for each metric.
-		Map<String, CalculationResult> calculationResultsByMetric = new HashMap<String, CalculationResult>();
-		TumorAnalysisCalculator tumorAnalysisCalculator = new TumorAnalysisCalculator(imageAnnotationsByStudyDate);
-		for(String metric : new String[] { selectedMetric }) calculationResultsByMetric.put(metric, tumorAnalysisCalculator.calculateRECIST(metric, "mm"));
+				
+		// Target lesion calculation.
+		Map<Date,List<ImageAnnotation>> targetImageAnnotationsByStudyDate = getImageAnnotationsForPatient(projectID, patientID, username, session, server, false);
+		Map<String, CalculationResult> targetCalculationResultsByMetric = new HashMap<String, CalculationResult>();
+		TumorAnalysisCalculator targetTumorAnalysisCalculator = new TumorAnalysisCalculator(targetImageAnnotationsByStudyDate);
+		for(String metric : new String[] { selectedMetric }) targetCalculationResultsByMetric.put(metric, targetTumorAnalysisCalculator.calculateRECIST(metric, "mm"));
+		
+		// Non-target lesion calculation.
+		Map<Date,List<ImageAnnotation>> nonTargetImageAnnotationsByStudyDate = getImageAnnotationsForPatient(projectID, patientID, username, session, server, true);
+		Map<String, CalculationResult> nonTargetCalculationResultsByMetric = new HashMap<String, CalculationResult>();
+		TumorAnalysisCalculator nonTargetTumorAnalysisCalculator = new TumorAnalysisCalculator(nonTargetImageAnnotationsByStudyDate);
+		for(String metric : new String[] { selectedMetric }) nonTargetCalculationResultsByMetric.put(metric, nonTargetTumorAnalysisCalculator.calculateRECIST(metric, "mm"));
 
 		logger.info("About to render.");
-		return renderDocument(patientID, "Dr. _____________________________", new Date(), calculationResultsByMetric.get(selectedMetric));
+		return renderDocument(patientID, "Dr. _____________________________", new Date(), targetCalculationResultsByMetric.get(selectedMetric), nonTargetCalculationResultsByMetric.get(selectedMetric));
 	}
 	
 	// set the session cookie in the http client
-	private void setSessionCookie(String serverProxy, DefaultHttpClient client, String session) {
+	private void setSessionCookie(String username, String serverProxy, DefaultHttpClient client, String session) {
 
 		//String serverProxy = "http://epad-dev5.stanford.edu:8080";
 		
-		String server = serverProxy.replace("http://", "")
-				.replace(":8080", "");
+		String server;
+		if(serverProxy.contains("http://"))
+			server = serverProxy.replace("http://", "").replace(":8080", "");
+		else
+			server = serverProxy.replace("https://", "").replace(":8080", "");
+		
+		
 
-		String path = "/epad";
+		String path = "/epad/";
 
 		CookieStore cookieStore = client.getCookieStore();
 
@@ -362,7 +413,7 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 
 		cookieStore.addCookie(cookie);
 		
-		BasicClientCookie admincookie = new BasicClientCookie("ePADLoggedInUser", "admin");
+		BasicClientCookie admincookie = new BasicClientCookie("ePADLoggedInUser", username);
 		admincookie.setVersion(0);
 
 		admincookie.setDomain(server);

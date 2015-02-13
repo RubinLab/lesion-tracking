@@ -16,12 +16,12 @@
 		<br />
 		<br />
 		
-		<table cellpadding='10' style='border-collapse: collapse; padding: 0px;'>
+		<table style='border-collapse: collapse; padding: 0px;'>
 			<tr>
-				<td style='vertical-align: top; font-weight: bold; border: 2px solid black;'>Site / Target Lesion(s)<br/><br/>Anatomic location</td>
+				<td style='vertical-align: top; font-weight: bold; border: 2px solid black; width: 175px; height: 50px; padding: 5px;'>Site / Target Lesion(s)<br/><br/>Anatomic location</td>
 				#foreach ($studyDate in $studyDates)
-				<td style='border: 2px solid black;'>
-					Scan date:<br /><span style='color: red; font-weight: bold;'>$studyDate</span><br /><br />
+				<td style='border: 2px solid black; width: 175px; height: 50px; padding: 5px;'>
+					Scan date: <span style='color: red; font-weight: bold;'>$sdf.format($studyDate)</span><br /><br />
 					Measurement ($units)
 				</td>
 				#end
@@ -31,7 +31,7 @@
 			<tr>
 				#foreach ($studyDate in $studyDates)
 					#if ( 0 == $velocityCount - 1 )
-					<td style='border: 2px solid black;'>
+					<td style='border: 2px solid black; width: 175px; height: 50px; padding: 5px;'>
 						$imageAnnotationName<br /><br />
 						#if ($anatomicEntityNamesByImageAnnotationName.containsKey($imageAnnotationName))
 							$anatomicEntityNamesByImageAnnotationName.get($imageAnnotationName)
@@ -39,104 +39,103 @@
 					</td>
 					#end
 					#if ($imageAnnotationsByNameAndStudyDate.get($studyDate).containsKey($imageAnnotationName))
-						<td style='border: 2px solid black;'>
+						<td style='border: 2px solid black; width: 175px; height: 50px; padding: 5px;'>
 							#if ( $metricValuesByImageAnnotation.get($imageAnnotationsByNameAndStudyDate.get($studyDate).get($imageAnnotationName)) )
-								$metricValuesByImageAnnotation.get($imageAnnotationsByNameAndStudyDate.get($studyDate).get($imageAnnotationName))
+								$df.format($metricValuesByImageAnnotation.get($imageAnnotationsByNameAndStudyDate.get($studyDate).get($imageAnnotationName)))
 							#else
 								Lesion annotation present, but no value recorded.
 							#end
 						</td>
 					#else
-						<td style='border: 2px solid black;'>Lesion annotation not present.</td>
+						<td style='border: 2px solid black; width: 175px; height: 50px; padding: 5px;'>Lesion annotation not present.</td>
 					#end
 				#end
 			</tr>
 			#end
 			
 			<tr>
-				<td style='font-weight: bold; border: 2px solid black;'>
+				<td style='font-weight: bold; border: 2px solid black; width: 175px; height: 50px; padding: 5px;'>
 					Sum of Target Lesion ($units):
 				</td>
 				#foreach ($studyDate in $studyDates)
-				<td style='border: 2px solid black;'>
+				<td style='border: 2px solid black; padding: 5px; width: 175px;'>
 					#if ($metricSumsByStudyDate.containsKey($studyDate))
-						$metricSumsByStudyDate.get($studyDate)
+						#if ($responseRatesByStudyDate.containsKey($studyDate) || $velocityCount == 1)
+							$df.format($metricSumsByStudyDate.get($studyDate))
+						#else
+							Metric sum could not be calculated due to missing lesion from baseline.
+						#end
 					#end
 				</td>
 				#end
 			</tr>
 			
 			<tr>
-				<td style='border: 2px solid black;'>
+				<td style='border: 2px solid black; width: 175px; height: 50px; padding: 5px;'>
 					<span style='font-weight: bold;'>Target Lesion Assessment:</span><br/>
-					<span style='font-weight: bold; color: red; text-decoration: underline;'>Choose ONE:</span>
-					<br/>
-						CR, PR, SD, PD<br/>
-						Not Assessed<br/>
-						Indeterminate<br/>
-						No Target Lesion at Baseline<br/>
-
+					Percentage Change
 				</td>
 				#foreach ($studyDate in $studyDates)
-				<td style='border: 2px solid black;'>
+				<td style='border: 2px solid black; width: 175px; height: 50px; padding: 5px;'>
 					#if ($responseRatesByStudyDate.containsKey($studyDate))
-						$cr.getResponseCategory($responseRatesByStudyDate.get($studyDate))
+						$df.format($responseRatesByStudyDate.get($studyDate))%
+					#else
+						#if ($velocityCount != 1)
+							Percent change could not be calculated due to missing lesion from baseline.
+						#end
 					#end
 				</td>
 				#end
 			</tr>
 			
 			<tr>
-				<td style='background-color: #D9D9D9; border: 2px solid black;'>
+				<td style='background-color: #D9D9D9; border: 2px solid black; width: 175px; height: 50px; padding: 5px;'>
 					<span style='font-weight: bold;'>Non-Target Lesion(s)<br/>Non-measurable sites</span>
 				</td>
 				#foreach ($studyDate in $studyDates)
-				<td style='background-color: #D9D9D9; border: 2px solid black;'>
+				<td style='background-color: #D9D9D9; border: 2px solid black; width: 175px; height: 50px; padding: 5px;'>
 				</td>
 				#end
 			</tr>
 			
-			#foreach ($imageAnnotationName in $sortedImageAnnotationNames)
+			#foreach ($imageAnnotationName in $nt_sortedImageAnnotationNames)
 			<tr>
-				#foreach ($studyDate in $studyDates)
+				#foreach ($studyDate in $nt_studyDates)
 					#if ( 0 == $velocityCount - 1 )
-					<td style='border: 2px solid black;'>
+					<td style='border: 2px solid black; width: 175px; height: 50px; padding: 5px;'>
 						$imageAnnotationName<br /><br />
-						#if ($anatomicEntityNamesByImageAnnotationName.containsKey($imageAnnotationName))
-							$anatomicEntityNamesByImageAnnotationName.get($imageAnnotationName)
+						#if ($nt_anatomicEntityNamesByImageAnnotationName.containsKey($imageAnnotationName))
+							$nt_anatomicEntityNamesByImageAnnotationName.get($imageAnnotationName)
 						#end
 					</td>
 					#end
-					#if ($imageAnnotationsByNameAndStudyDate.get($studyDate).containsKey($imageAnnotationName))
-						<td style='border: 2px solid black;'>
-							#if ( $metricValuesByImageAnnotation.get($imageAnnotationsByNameAndStudyDate.get($studyDate).get($imageAnnotationName)) )
-								$metricValuesByImageAnnotation.get($imageAnnotationsByNameAndStudyDate.get($studyDate).get($imageAnnotationName))
+					#if ($nt_imageAnnotationsByNameAndStudyDate.get($studyDate).containsKey($imageAnnotationName))
+						<td style='border: 2px solid black; width: 175px; height: 50px; padding: 5px;'>
+							#if ( $nt_metricValuesByImageAnnotation.get($nt_imageAnnotationsByNameAndStudyDate.get($studyDate).get($imageAnnotationName)) )
+								$df.format($nt_metricValuesByImageAnnotation.get($nt_imageAnnotationsByNameAndStudyDate.get($studyDate).get($imageAnnotationName)))
 							#else
 								Lesion annotation present, but no value recorded.
 							#end
 						</td>
 					#else
-						<td style='border: 2px solid black;'>Lesion annotation not present.</td>
+						<td style='border: 2px solid black; width: 175px; height: 50px; padding: 5px;'>Lesion annotation not present.</td>
 					#end
 				#end
 			</tr>
 			#end	
 			
 			<tr>
-				<td style='border: 2px solid black;'>
-					<span style='font-weight: bold;'>Non-Target Lesion Assessment:</span><br/>
-					<span style='font-weight: bold; color: red; text-decoration: underline;'>Choose ONE:</span>
-					<br/>
-						CR, PR, SD, PD<br/>
-						Not Assessed<br/>
-						Indeterminate<br/>
-						No Target Lesion at Baseline<br/>
-
+				<td style='border: 2px solid black; height: 30px; width: 175px; height: 50px; padding: 5px;'>
+				Percent Change
 				</td>
-				#foreach ($studyDate in $studyDates)
-				<td style='border: 2px solid black;'>
-					#if ($responseRatesByStudyDate.containsKey($studyDate))
-						$cr.getResponseCategory($responseRatesByStudyDate.get($studyDate))
+				#foreach ($studyDate in $nt_studyDates)
+				<td style='border: 2px solid black; width: 175px; height: 50px; padding: 5px;'>
+					#if ($nt_responseRatesByStudyDate.containsKey($studyDate))
+						$df.format($nt_responseRatesByStudyDate.get($studyDate))%
+					#else
+						#if ($velocityCount != 1)
+							Percent change could not be calculated due to missing lesion from baseline.
+						#end
 					#end
 				</td>
 				#end
