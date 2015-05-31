@@ -17,7 +17,8 @@ public class AIMAttribute implements IsSerializable
                                INSTANCE_UID = "instanceUID",
                                SOP_INSTANCE_UID = "sopInstanceUID",
                                TYPE = "type",
-                               COORDINATE_INDEX = "coordinateIndex";
+                               COORDINATE_INDEX = "coordinateIndex",
+                               CODE_SYSTEM = "codeSystem";
 
     private String name = "", value = "";
 

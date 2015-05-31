@@ -11,12 +11,17 @@ public abstract class AIMElement implements IsSerializable
                          IMAGE_COLLECTION              = "ImageCollection",
                          ANATOMIC_ENTITY_COLLECTION    = "AnatomicEntityCollection",
                          ANATOMIC_ENTITY 			   = "AnatomicEntity",
+                         DATE_TIME					   = "DateTime",
                          GEOMETRIC_SHAPE_COLLECTION    = "GeometricShapeCollection",
                          GEOMETRIC_SHAPE 			   = "GeometricShape",
                          SPATIAL_COORDINATE_COLLECTION = "SpatialCoordinateCollection",
                          SPATIAL_COORDINATE 		   = "SpatialCoordinate",
+                         IMAGING_PHYSICAL_ENTITY	   = "ImagingPhysicalEntity",
+                         IMAGING_PHYSICAL_ENTITY_COLLECTION = "ImagingPhysicalEntityCollection",
                          IMAGE_REFERENCE_COLLECTION    = "ImageReferenceCollection",
                          IMAGE_REFERENCE 			   = "ImageReference",
+                         IMAGE_REFERENCE_ENTITY		   = "ImageReferenceEntity",
+                         IMAGE_REFERENCE_ENTITY_COLLECTION = "ImageReferenceEntityCollection",
                          IMAGE_SERIES              	   = "ImageSeries",
                          IMAGE_STUDY				   = "ImageStudy",
                          IMAGING_OBSERVATION_CHARACTERISTIC = "ImagingObservationCharacteristic",
@@ -34,7 +39,9 @@ public abstract class AIMElement implements IsSerializable
                          DATA_COLLECTION 			   = "DataCollection",
                          DATA 						   = "Data",
                          PATIENT 					   = "Patient",
-                         PERSON						   = "Person";
+                         PERSON						   = "Person",
+                         START_DATE					   = "StartDate",
+                         TYPE_CODE					   = "TypeCode";
 
     private ArrayList<ArrayList<AIMElement>> aimElements = new ArrayList<ArrayList<AIMElement>>();
     private ArrayList<AIMAttribute> aimAttributes = new ArrayList<AIMAttribute>();
@@ -46,6 +53,9 @@ public abstract class AIMElement implements IsSerializable
 
         if(name.equalsIgnoreCase(ANATOMIC_ENTITY))
             return new AnatomicEntity();
+        
+        if(name.equalsIgnoreCase(DATE_TIME))
+        	return new DateTime();
 
         if(name.equalsIgnoreCase(IMAGING_OBSERVATION_CHARACTERISTIC))
         	return new ImagingObservationCharacteristic();
@@ -82,6 +92,12 @@ public abstract class AIMElement implements IsSerializable
 
         if(name.equalsIgnoreCase(IMAGE_REFERENCE))
             return new ImageReference();
+        
+        if(name.equalsIgnoreCase(IMAGE_REFERENCE_ENTITY_COLLECTION))
+            return new ImageReferenceEntityCollection();
+
+        if(name.equalsIgnoreCase(IMAGE_REFERENCE_ENTITY))
+            return new ImageReferenceEntity();
 
         if(name.equalsIgnoreCase(IMAGE_SERIES))
             return new ImageSeries();
@@ -125,6 +141,19 @@ public abstract class AIMElement implements IsSerializable
         if(name.equalsIgnoreCase(PERSON))
             return new Person();
 
+        if(name.equalsIgnoreCase(START_DATE))
+            return new StartDate();
+
+        if(name.equalsIgnoreCase(IMAGING_PHYSICAL_ENTITY_COLLECTION))
+        	return new ImagingPhysicalEntityCollection();
+        
+        if(name.equalsIgnoreCase(IMAGING_PHYSICAL_ENTITY))
+        	return new ImagingPhysicalEntity();
+        
+        if(name.equalsIgnoreCase(TYPE_CODE))
+        	return new TypeCode();
+
+        System.out.println("No AIM element of type " + name);
         return null;
     }
 

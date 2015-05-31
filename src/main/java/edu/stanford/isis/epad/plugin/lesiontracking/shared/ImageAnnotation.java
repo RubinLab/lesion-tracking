@@ -2,14 +2,18 @@ package edu.stanford.isis.epad.plugin.lesiontracking.shared;
 
 public class ImageAnnotation extends AIMElement
 {
-    private static final String[] ALL_ELEMENT_NAMES = { ANATOMIC_ENTITY_COLLECTION, IMAGING_OBSERVATION_COLLECTION, GEOMETRIC_SHAPE_COLLECTION, CALCULATION_COLLECTION, PATIENT, PERSON, IMAGE_REFERENCE_COLLECTION };
+    private static final String[] ALL_ELEMENT_NAMES = { ANATOMIC_ENTITY_COLLECTION, IMAGING_OBSERVATION_COLLECTION, GEOMETRIC_SHAPE_COLLECTION, CALCULATION_COLLECTION,
+    													PATIENT, PERSON, IMAGE_REFERENCE_COLLECTION, DATE_TIME, IMAGE_REFERENCE_ENTITY_COLLECTION, IMAGING_PHYSICAL_ENTITY_COLLECTION };
     private static final int ANATOMIC_ENTITY_COLLECTION_INDEX = 0,
     						 IMAGING_OBSERVATION_COLLECTION_INDEX   = 1,
                              GEOMETRIC_SHAPE_COLLECTION_INDEX = 2,
                              CALCULATION_COLLECTION_INDEX     = 3,
                              PATIENT_INDEX 					  = 4,
                              PERSON_INDEX					  = 5,
-                             IMAGE_REFERENCE_COLLECTION_INDEX = 6;
+                             IMAGE_REFERENCE_COLLECTION_INDEX = 6,
+                             DATE_TIME_INDEX				  = 7,
+                             IMAGE_REFERENCE_ENTITY_COLLECTION_INDEX = 8,
+                             IMAGING_PHYSICAL_ENTITY_COLLECTION_INDEX = 9;
 
     private static final String[] ALL_ATTRIBUTE_NAMES = { AIMAttribute.NAME, AIMAttribute.UNIQUE_IDENTIFIER };
     private static final int NAME_INDEX = 0,
@@ -100,6 +104,26 @@ public class ImageAnnotation extends AIMElement
     public ImageReferenceCollection getImageReferenceCollection(int i)
     {
         return (ImageReferenceCollection)getAllAIMElements().get(IMAGE_REFERENCE_COLLECTION_INDEX).get(i);
+    }
+    
+    public int getNumberOfImageReferenceEntityCollections()
+    {
+        return getAllAIMElements().get(IMAGE_REFERENCE_ENTITY_COLLECTION_INDEX).size();
+    }
+
+    public ImageReferenceEntityCollection getImageReferenceEntityCollection(int i)
+    {
+        return (ImageReferenceEntityCollection)getAllAIMElements().get(IMAGE_REFERENCE_ENTITY_COLLECTION_INDEX).get(i);
+    } 
+    
+    public int getNumberOfImagingPhysicalEntityCollections()
+    {
+        return getAllAIMElements().get(IMAGING_PHYSICAL_ENTITY_COLLECTION_INDEX).size();
+    }
+
+    public ImagingPhysicalEntityCollection getImagingPhysicalEntityCollection(int i)
+    {
+        return (ImagingPhysicalEntityCollection)getAllAIMElements().get(IMAGING_PHYSICAL_ENTITY_COLLECTION_INDEX).get(i);
     }
 
     public String getName()

@@ -2,10 +2,11 @@ package edu.stanford.isis.epad.plugin.lesiontracking.shared;
 
 public class ImageStudy extends AIMElement
 {
-    private static final String[] ALL_ELEMENT_NAMES = { IMAGE_STUDY, IMAGE_SERIES, SERIES };
+    private static final String[] ALL_ELEMENT_NAMES = { IMAGE_STUDY, IMAGE_SERIES, SERIES, START_DATE };
     private static final int IMAGE_STUDY_INDEX = 0,
                              IMAGE_SERIES_INDEX = 1,
-                             SERIES_INDEX = 2;
+                             SERIES_INDEX = 2,
+                             START_DATE_ELEMENT_INDEX = 3;
 
     private static final String[] ALL_ATTRIBUTE_NAMES = { AIMAttribute.START_DATE, AIMAttribute.INSTANCE_UID };
     private static final int START_DATE_INDEX   = 0,
@@ -29,6 +30,16 @@ public class ImageStudy extends AIMElement
     public ImageSeries getImageSeries(int i)
     {
         return (ImageSeries)getAllAIMElements().get(IMAGE_SERIES_INDEX).get(i);
+    }
+    
+    public int getNumberOfStartDates()
+    {
+        return getAllAIMElements().get(START_DATE_ELEMENT_INDEX).size();
+    }
+
+    public StartDate getStartDate(int i)
+    {
+        return (StartDate)getAllAIMElements().get(START_DATE_ELEMENT_INDEX).get(i);
     }
 
     public int getNumberOfSeries()

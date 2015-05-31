@@ -148,6 +148,8 @@ public class AIMFileReader
 
         Element element = (Element)node;
         NamedNodeMap attributesList = element.getAttributes();
+        
+        System.out.println("Getting AIM attribtues for aimElement "  + aimElement.getName());
 
         String[] allAIMAttributeNames = aimElement.getAllAIMAttributeNames();
         for(int i = 0; i < attributesList.getLength(); i++)
@@ -173,19 +175,26 @@ public class AIMFileReader
         {
             Node childNode = allChildNodes.item(i);
 
-            if(childNode.getNodeType() != Node.ELEMENT_NODE)continue;
+            if(childNode.getNodeType() != Node.ELEMENT_NODE) continue;
 
             Element childElement = (Element)childNode;
             String childElementName = childElement.getNodeName();
-
+            
+            boolean foundElementName = false;
             for( int j = 0; j < allAIMElementNames.length; j++ )
             {
                 String childAIMElementName = allAIMElementNames[j];
                 if(!childElementName.equalsIgnoreCase(childAIMElementName))continue;
-
+                
+                foundElementName = true;
                 AIMElement childAIMElement = AIMElement.getAIMElementOfType(childAIMElementName);
                 recursivelyParse(childElement, childAIMElement);
                 aimElement.addAIMElement(childAIMElement);
+            }
+            
+            if(!foundElementName)
+            {
+            	System.out.println("Could not find element: " + childElementName + " from parent element: " + element.getNodeName());
             }
         }
     }
