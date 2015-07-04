@@ -52,8 +52,11 @@ import edu.stanford.isis.epad.plugin.lesiontracking.client.TrackingService;
 import edu.stanford.isis.epad.plugin.lesiontracking.server.TumorAnalysisCalculator.CalculationResult;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.ImageAnnotation;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.ImagingObservation;
+import edu.stanford.isis.epad.plugin.lesiontracking.shared.ImagingObservationCharacteristic;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.ImagingObservationCharacteristicCollection;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.ImagingObservationCollection;
+import edu.stanford.isis.epad.plugin.lesiontracking.shared.ImagingObservationEntity;
+import edu.stanford.isis.epad.plugin.lesiontracking.shared.ImagingObservationEntityCollection;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.ImagingPhysicalEntity;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.ImagingPhysicalEntityCollection;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.TypeCode;
@@ -226,7 +229,7 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 					if(imageAnnotation.getNumberOfImageReferenceEntityCollections() > 0)
 					{
 						studyDate = ImageAnnotationUtility.getStudyDate(imageAnnotation.getImageReferenceEntityCollection(0));
-						System.out.println("Got studyDate from ImageReferenceEntityCollection: " + studyDate);
+						//System.out.println("Got studyDate from ImageReferenceEntityCollection: " + studyDate);
 					}
 					else
 					{
@@ -263,6 +266,37 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 						if(imagingObservationCharacteristicCollection.getNumberOfImagingObservationCharacteristics() > 0)
 						{
 							targetLesionFlag = imagingObservationCharacteristicCollection.getImagingObservationCharacteristic(0).getCodeMeaning();
+						}
+					}
+				}
+			}
+			
+			if(targetLesionFlag == null)
+			{
+				if(imageAnnotation.getNumberOfImagingObservationEntityCollections() > 0)
+				{
+					ImagingObservationEntityCollection imagingObservationEntityCollection = imageAnnotation.getImagingObservationEntityCollection(0);
+					
+					if(imagingObservationEntityCollection.getNumberOfImagingObservationEntities() > 0)
+					{
+						ImagingObservationEntity imagingObservationEntity = imagingObservationEntityCollection.getImagingObservationEntity(0);
+						
+						if(imagingObservationEntity.getNumberOfImagingObservationCharacteristicCollections() > 0)
+						{
+							ImagingObservationCharacteristicCollection imagingObservationCharacteristicCollection = imagingObservationEntity.getImagingObservationCharacteristicCollection(0);
+							
+							if(imagingObservationCharacteristicCollection.getNumberOfImagingObservationCharacteristics() > 0)
+							{
+								ImagingObservationCharacteristic imagingObservationCharacteristic = imagingObservationCharacteristicCollection.getImagingObservationCharacteristic(0);
+								
+
+								if(imagingObservationCharacteristic.getNumberOfTypeCodes() > 0)
+								{
+									TypeCode typeCode = imagingObservationCharacteristic.getTypeCode(0);
+									
+									targetLesionFlag = typeCode.getCodeSystem();
+								}
+							}
 						}
 					}
 				}
@@ -400,18 +434,21 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
         context.put("units", targetCalculationResult.getUnitOfMeasure());
         context.put("responseRatesByStudyDate", targetCalculationResult.getResponseRatesByStudyDate());
         context.put("cr", targetCalculationResult);
-        
-        context.put("nt_imageAnnotationsByNameAndStudyDate", nonTargetCalculationResult.getImageAnnotationsByNameAndStudyDate());
-        context.put("nt_metricValuesByImageAnnotation", nonTargetCalculationResult.getMetricValuesByImageAnnotation());
-        context.put("nt_studyDates", nonTargetCalculationResult.getSortedStudyDates());
-        context.put("nt_sortedImageAnnotationNames", nonTargetCalculationResult.getSortedImageAnnotationNames());
-        context.put("nt_anatomicEntityNamesByImageAnnotationName", nonTargetCalculationResult.getAnatomicEntityNamesByImageAnnotationName());
-        context.put("nt_metricValuesByImageAnnotation", nonTargetCalculationResult.getMetricValuesByImageAnnotation());
-        context.put("nt_metricSumsByStudyDate", nonTargetCalculationResult.getMetricSumsByStudyDate());
-        context.put("nt_anatomicEntitiesByImageAnnotation", nonTargetCalculationResult.getAnatomicEntitiesByImageAnnotation());
-        context.put("nt_units", nonTargetCalculationResult.getUnitOfMeasure());
-        context.put("nt_responseRatesByStudyDate", nonTargetCalculationResult.getResponseRatesByStudyDate());
-        context.put("nt_cr", targetCalculationResult);
+       
+        if(nonTargetCalculationResult != null)
+        {
+	        context.put("nt_imageAnnotationsByNameAndStudyDate", nonTargetCalculationResult.getImageAnnotationsByNameAndStudyDate());
+	        context.put("nt_metricValuesByImageAnnotation", nonTargetCalculationResult.getMetricValuesByImageAnnotation());
+	        context.put("nt_studyDates", nonTargetCalculationResult.getSortedStudyDates());
+	        context.put("nt_sortedImageAnnotationNames", nonTargetCalculationResult.getSortedImageAnnotationNames());
+	        context.put("nt_anatomicEntityNamesByImageAnnotationName", nonTargetCalculationResult.getAnatomicEntityNamesByImageAnnotationName());
+	        context.put("nt_metricValuesByImageAnnotation", nonTargetCalculationResult.getMetricValuesByImageAnnotation());
+	        context.put("nt_metricSumsByStudyDate", nonTargetCalculationResult.getMetricSumsByStudyDate());
+	        context.put("nt_anatomicEntitiesByImageAnnotation", nonTargetCalculationResult.getAnatomicEntitiesByImageAnnotation());
+	        context.put("nt_units", nonTargetCalculationResult.getUnitOfMeasure());
+	        context.put("nt_responseRatesByStudyDate", nonTargetCalculationResult.getResponseRatesByStudyDate());
+	        context.put("nt_cr", targetCalculationResult);
+        }
         
         
         writer = new StringWriter();
@@ -463,10 +500,36 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 		//trackingServiceImpl.getRECISTHTML("RECIST", "7", "admin", "http://epad-public.stanford.edu:8080", "FD18E22C7A2A98C2446453D397C6F803", "LineLength");
 		
 		String result = readFile("image_annotations.xml", Charset.defaultCharset());
-		Map<Date, List<ImageAnnotation>> output = trackingServiceImpl.parseXMLStringForImageAnnotations(result, false);
-		System.out.println(output.size());
+		Map<Date, List<ImageAnnotation>> targetImageAnnotationsByStudyDate = trackingServiceImpl.parseXMLStringForImageAnnotations(result, false);
+		trackingServiceImpl.getRECISTHTML(targetImageAnnotationsByStudyDate, new HashMap<Date, List<ImageAnnotation>>(), "linelength", "Aaron");
+		
+		System.out.println(targetImageAnnotationsByStudyDate.size());
 	}
 
+	
+	private String getRECISTHTML(Map<Date,List<ImageAnnotation>> targetImageAnnotationsByStudyDate,
+										Map<Date,List<ImageAnnotation>> nonTargetImageAnnotationsByStudyDate,
+										String selectedMetric, String patientID)
+	{
+		// Target lesion calculation.
+		Map<String, CalculationResult> targetCalculationResultsByMetric = new HashMap<String, CalculationResult>();
+		TumorAnalysisCalculator targetTumorAnalysisCalculator = new TumorAnalysisCalculator(targetImageAnnotationsByStudyDate);
+		for(String metric : new String[] { selectedMetric }) targetCalculationResultsByMetric.put(metric, targetTumorAnalysisCalculator.calculateRECIST(metric, "mm"));
+		
+		// Non-target lesion calculation.
+
+		Map<String, CalculationResult> nonTargetCalculationResultsByMetric = new HashMap<String, CalculationResult>();
+		if(nonTargetImageAnnotationsByStudyDate != null && !nonTargetImageAnnotationsByStudyDate.isEmpty())
+		{
+			TumorAnalysisCalculator nonTargetTumorAnalysisCalculator = new TumorAnalysisCalculator(nonTargetImageAnnotationsByStudyDate);
+			for(String metric : new String[] { selectedMetric }) nonTargetCalculationResultsByMetric.put(metric, nonTargetTumorAnalysisCalculator.calculateRECIST(metric, "mm"));
+		}
+
+		logger.info("About to render.");
+		return renderDocument(patientID, "Dr. _____________________________", new Date(),
+				targetCalculationResultsByMetric.get(selectedMetric),
+				nonTargetCalculationResultsByMetric.get(selectedMetric));
+	}
 	
 	public String getRECISTHTML(String projectID, String patientID, String username,
 								String server, String session, String selectedMetric) throws Exception
@@ -484,21 +547,11 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 		logger.info("Getting RECIST HTML");
 		
 		getPatientNames(projectID, username, session, server);
-				
-		// Target lesion calculation.
-		Map<Date,List<ImageAnnotation>> targetImageAnnotationsByStudyDate = getImageAnnotationsForPatient(projectID, patientID, username, session, server, false);
-		Map<String, CalculationResult> targetCalculationResultsByMetric = new HashMap<String, CalculationResult>();
-		TumorAnalysisCalculator targetTumorAnalysisCalculator = new TumorAnalysisCalculator(targetImageAnnotationsByStudyDate);
-		for(String metric : new String[] { selectedMetric }) targetCalculationResultsByMetric.put(metric, targetTumorAnalysisCalculator.calculateRECIST(metric, "mm"));
-		
-		// Non-target lesion calculation.
-		Map<Date,List<ImageAnnotation>> nonTargetImageAnnotationsByStudyDate = getImageAnnotationsForPatient(projectID, patientID, username, session, server, true);
-		Map<String, CalculationResult> nonTargetCalculationResultsByMetric = new HashMap<String, CalculationResult>();
-		TumorAnalysisCalculator nonTargetTumorAnalysisCalculator = new TumorAnalysisCalculator(nonTargetImageAnnotationsByStudyDate);
-		for(String metric : new String[] { selectedMetric }) nonTargetCalculationResultsByMetric.put(metric, nonTargetTumorAnalysisCalculator.calculateRECIST(metric, "mm"));
 
-		logger.info("About to render.");
-		return renderDocument(patientID, "Dr. _____________________________", new Date(), targetCalculationResultsByMetric.get(selectedMetric), nonTargetCalculationResultsByMetric.get(selectedMetric));
+		Map<Date,List<ImageAnnotation>> targetImageAnnotationsByStudyDate = getImageAnnotationsForPatient(projectID, patientID, username, session, server, false);
+		Map<Date,List<ImageAnnotation>> nonTargetImageAnnotationsByStudyDate = getImageAnnotationsForPatient(projectID, patientID, username, session, server, true);
+		
+		return getRECISTHTML(targetImageAnnotationsByStudyDate, nonTargetImageAnnotationsByStudyDate, selectedMetric, patientID);
 	}
 	
 	// set the session cookie in the http client

@@ -35,7 +35,6 @@ public class ImageAnnotationUtility
              */
             if(imageReferenceEntity.getNumberOfImageStudies() > 0)
             {
-            	System.out.println("ImageReferenceEntity hast at least one imageStudy.");
                 for(int j = 0; j < imageReferenceEntity.getNumberOfImageStudies(); j++)
                 {
                     ImageStudy imageStudy = imageReferenceEntity.getImageStudy(j);                    
@@ -97,6 +96,8 @@ public class ImageAnnotationUtility
             }
             else
             {
+
+            	System.out.println("ImageReferenceEntity does NOT have at least one imageStudy.");
                 for(int j = 0; j < imageReferenceEntity.getNumberOfStudies(); j++)
                 {
                     Study study = imageReferenceEntity.getStudy(j);

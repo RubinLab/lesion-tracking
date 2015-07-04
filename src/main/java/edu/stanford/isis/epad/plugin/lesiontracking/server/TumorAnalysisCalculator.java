@@ -14,10 +14,14 @@ import edu.stanford.isis.epad.plugin.lesiontracking.shared.Calculation;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.CalculationCollection;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.CalculationData;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.CalculationDataCollection;
+import edu.stanford.isis.epad.plugin.lesiontracking.shared.CalculationEntity;
+import edu.stanford.isis.epad.plugin.lesiontracking.shared.CalculationEntityCollection;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.CalculationResultCollection;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.Data;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.DataCollection;
+import edu.stanford.isis.epad.plugin.lesiontracking.shared.Description;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.ImageAnnotation;
+import edu.stanford.isis.epad.plugin.lesiontracking.shared.Value;
 
 public class TumorAnalysisCalculator
 {
@@ -248,6 +252,17 @@ public class TumorAnalysisCalculator
                     metricSumsByStudyDate.put(studyDate, metricSumsByStudyDate.get(studyDate) + metricValue);
                 }
                 
+                System.out.println("WE HAVE THIS MANY CALCULATION ENTITY COLLECTIONS: " + imageAnnotation.getNumberOfCalculationEntityCollections());
+                for( int k = 0; k < imageAnnotation.getNumberOfCalculationEntityCollections(); k++)
+                {
+                    CalculationEntityCollection calculationEntityCollection = imageAnnotation.getCalculationEntityCollection(k);
+
+                    Float metricValue = sumLesionMetricValues(calculationEntityCollection, unitOfMeasure, metric);
+                    
+                    metricValuesByImageAnnotation.put(imageAnnotation, metricValue);
+                    metricSumsByStudyDate.put(studyDate, metricSumsByStudyDate.get(studyDate) + metricValue);
+                }
+                
                 if(imageAnnotation.getNumberOfAnatomicEntityCollections() > 0)
                 {
                 	String anatomicEntityCodeMeaning = imageAnnotation.getAnatomicEntityCollection(0).getAnatomicEntity(0).getCodeMeaning();
@@ -353,7 +368,73 @@ public class TumorAnalysisCalculator
         
         return calculationResult;
     }
+    private float sumLesionMetricValues(CalculationEntityCollection calculationEntityCollection, String targetUnits, String metric)
+    {
+        float sum = 0;
+        System.out.println("We have this many calculation entities: " + calculationEntityCollection.getNumberOfCalculationEntities());
+        for( int i = 0; i < calculationEntityCollection.getNumberOfCalculationEntities(); i++ )
+        {
+            CalculationEntity calculationEntity = calculationEntityCollection.getCalculationEntity(i);
 
+            /** Only include calculations that match the metric tag. **/
+
+            System.out.println("We have this many descriptions: " + calculationEntity.getNumberOfDescriptions());
+            
+            if(calculationEntity.getNumberOfDescriptions() > 0)
+            {
+                Description description = calculationEntity.getDescription(0);
+                
+	            if(metric.equalsIgnoreCase(description.getValue()))
+	            {
+	                for( int j = 0; j < calculationEntity.getNumberOfCalculationResultCollections(); j++ )
+	                {
+	                    CalculationResultCollection calculationResultCollection = calculationEntity.getCalculationResultCollection(j);
+	                    for( int k = 0; k < calculationResultCollection.getNumberOfCalculationResults(); k++ )
+	                    {
+	                    	edu.stanford.isis.epad.plugin.lesiontracking.shared.CalculationResult calculationResult = calculationResultCollection.getCalculationResult(k);
+	                        UnitConversion unitConversion = new UnitConversion(calculationResult.getUnitOfMeasure(), targetUnits);
+	
+	                        /**
+	                         * This is a backwards compatibility check. If we can't find any CalculationDataCollection
+	                         * objects, we will look for the older type "DataCollection"
+	                         */
+	                        if(calculationResult.getNumberOfCalculationDataCollections() > 0)
+	                        {
+	                            for( int l = 0; l < calculationResult.getNumberOfCalculationDataCollections(); l++ )
+	                            {
+	                                CalculationDataCollection calculationDataCollection = calculationResult.getCalculationDataCollection(l);
+	                                for( int m = 0; m < calculationDataCollection.getNumberOfCalculationDatas(); m++ )
+	                                {
+	                                    CalculationData calculationData = calculationDataCollection.getCalculationData(m);
+	                                    
+	                                    for(int n = 0; n < calculationData.getNumberOfValues(); n++)
+	                                    {
+	                                    	Value value = calculationData.getValue(n);
+	                                    	sum += unitConversion.convertToTargetUnit(Float.parseFloat(value.getValue()));
+	                                    }
+	                                }
+	                            }
+	                        }
+	                        else
+	                        {
+	                            for( int l = 0; l < calculationResult.getNumberOfDataCollections(); l++ )
+	                            {
+	                                DataCollection dataCollection = calculationResult.getDataCollection(l);
+	                                for( int m = 0; m < dataCollection.getNumberOfDatas(); m++ )
+	                                {
+	                                    Data data = dataCollection.getData(m);
+	                                    sum += unitConversion.convertToTargetUnit(Float.parseFloat(data.getValue()));
+	                                }
+	                            }
+	                        }
+	                    }
+	                }
+	            }
+            }
+        }
+        return sum;
+    }
+    
     private float sumLesionMetricValues(CalculationCollection calculationCollection, String targetUnits, String metric)
     {
         float sum = 0;

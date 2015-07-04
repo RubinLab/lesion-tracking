@@ -3,7 +3,8 @@ package edu.stanford.isis.epad.plugin.lesiontracking.shared;
 public class ImageAnnotation extends AIMElement
 {
     private static final String[] ALL_ELEMENT_NAMES = { ANATOMIC_ENTITY_COLLECTION, IMAGING_OBSERVATION_COLLECTION, GEOMETRIC_SHAPE_COLLECTION, CALCULATION_COLLECTION,
-    													PATIENT, PERSON, IMAGE_REFERENCE_COLLECTION, DATE_TIME, IMAGE_REFERENCE_ENTITY_COLLECTION, IMAGING_PHYSICAL_ENTITY_COLLECTION };
+    													PATIENT, PERSON, IMAGE_REFERENCE_COLLECTION, DATE_TIME, IMAGE_REFERENCE_ENTITY_COLLECTION, IMAGING_PHYSICAL_ENTITY_COLLECTION,
+    													CALCULATION_ENTITY_COLLECTION, IMAGING_OBSERVATION_ENTITY_COLLECTION };
     private static final int ANATOMIC_ENTITY_COLLECTION_INDEX = 0,
     						 IMAGING_OBSERVATION_COLLECTION_INDEX   = 1,
                              GEOMETRIC_SHAPE_COLLECTION_INDEX = 2,
@@ -13,7 +14,9 @@ public class ImageAnnotation extends AIMElement
                              IMAGE_REFERENCE_COLLECTION_INDEX = 6,
                              DATE_TIME_INDEX				  = 7,
                              IMAGE_REFERENCE_ENTITY_COLLECTION_INDEX = 8,
-                             IMAGING_PHYSICAL_ENTITY_COLLECTION_INDEX = 9;
+                             IMAGING_PHYSICAL_ENTITY_COLLECTION_INDEX = 9,
+                             CALCULATION_ENTITY_COLLECTION_INDEX = 10,
+                             IMAGING_OBSERVATION_ENTITY_COLLECTION_INDEX = 11;
 
     private static final String[] ALL_ATTRIBUTE_NAMES = { AIMAttribute.NAME, AIMAttribute.UNIQUE_IDENTIFIER };
     private static final int NAME_INDEX = 0,
@@ -56,6 +59,16 @@ public class ImageAnnotation extends AIMElement
         return (ImagingObservationCollection)getAllAIMElements().get(IMAGING_OBSERVATION_COLLECTION_INDEX).get(i);
     }
     
+    public int getNumberOfImagingObservationEntityCollections()
+    {
+        return getAllAIMElements().get(IMAGING_OBSERVATION_ENTITY_COLLECTION_INDEX).size();
+    }
+
+    public ImagingObservationEntityCollection getImagingObservationEntityCollection(int i)
+    {
+        return (ImagingObservationEntityCollection)getAllAIMElements().get(IMAGING_OBSERVATION_ENTITY_COLLECTION_INDEX).get(i);
+    }
+    
     public int getNumberOfGeometricShapeCollections()
     {
         return getAllAIMElements().get(GEOMETRIC_SHAPE_COLLECTION_INDEX).size();
@@ -76,6 +89,16 @@ public class ImageAnnotation extends AIMElement
         return (CalculationCollection)getAllAIMElements().get(CALCULATION_COLLECTION_INDEX).get(i);
     }
 
+    public int getNumberOfCalculationEntityCollections()
+    {
+        return getAllAIMElements().get(CALCULATION_ENTITY_COLLECTION_INDEX).size();
+    }
+
+    public CalculationEntityCollection getCalculationEntityCollection(int i)
+    {
+        return (CalculationEntityCollection)getAllAIMElements().get(CALCULATION_ENTITY_COLLECTION_INDEX).get(i);
+    }
+    
     public int getNumberOfPatients()
     {
         return getAllAIMElements().get(PATIENT_INDEX).size();
