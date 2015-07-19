@@ -71,7 +71,7 @@ public class WADORequest
             }
         }
 
-        System.out.println(wadoURL);
+        //System.out.println(wadoURL);
         return wadoURL;
     }
 

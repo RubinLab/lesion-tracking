@@ -223,7 +223,7 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 					studyDate = ImageAnnotationUtility.getStudyDate(imageAnnotation.getImageReferenceCollection(0));
 
 
-                	System.out.println("Got studyDate from ImageReferenceCollection: " + studyDate);
+                	//System.out.println("Got studyDate from ImageReferenceCollection: " + studyDate);
 				}
 				else
 					if(imageAnnotation.getNumberOfImageReferenceEntityCollections() > 0)
@@ -233,7 +233,7 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 					}
 					else
 					{
-						System.out.println("Could not find studyDate for image annotation.");
+						//System.out.println("Could not find studyDate for image annotation.");
 						continue;
 					}				
 				
@@ -242,7 +242,7 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 			{
 				studyDate = new Date(0l);
 				parseException.printStackTrace();
-				System.out.println("A parse exception was thrown, skipping imageAnnotion.");
+				//System.out.println("A parse exception was thrown, skipping imageAnnotion.");
 				continue;
 			}
 			
@@ -324,11 +324,11 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 			
 			if(targetLesionFlag == null)
 			{
-				System.out.println("Could not find target lesion flag, skipping annotation.");
+				//System.out.println("Could not find target lesion flag, skipping annotation.");
 				continue;
 			}
 			
-			System.out.println("TARGET LESION STRING: " + targetLesionFlag);
+			//System.out.println("TARGET LESION STRING: " + targetLesionFlag);
 			
 			if(isNonTarget == null)
 				targetImageAnnotationsByStudyDate.get(studyDate).add(imageAnnotation);
@@ -363,7 +363,7 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 		try {
 			// make the call
 			response = client.execute(get);
-			System.out.println("RESPONSE: " + response);
+			//System.out.println("RESPONSE: " + response);
 			if (response != null) {
 
 				// reflect the status line
@@ -382,14 +382,14 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 					}
 					instream.close();
 				}
-				System.out.println("Result AIM: " + result);
+				//System.out.println("Result AIM: " + result);
 
 			} else {
-				System.out.println("Result AIM: Empty");
+				//System.out.println("Result AIM: Empty");
 			}
 
 		} catch (Exception e) {
-			System.out.println(e);
+			//System.out.println(e);
 		}
 		
 		return parseXMLStringForImageAnnotations(result, isNonTarget);
@@ -503,7 +503,7 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 		Map<Date, List<ImageAnnotation>> targetImageAnnotationsByStudyDate = trackingServiceImpl.parseXMLStringForImageAnnotations(result, false);
 		trackingServiceImpl.getRECISTHTML(targetImageAnnotationsByStudyDate, new HashMap<Date, List<ImageAnnotation>>(), "linelength", "Aaron");
 		
-		System.out.println(targetImageAnnotationsByStudyDate.size());
+		//System.out.println(targetImageAnnotationsByStudyDate.size());
 	}
 
 	

@@ -21,6 +21,10 @@ import edu.stanford.isis.epad.plugin.lesiontracking.shared.Data;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.DataCollection;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.Description;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.ImageAnnotation;
+import edu.stanford.isis.epad.plugin.lesiontracking.shared.ImagingPhysicalEntity;
+import edu.stanford.isis.epad.plugin.lesiontracking.shared.ImagingPhysicalEntityCollection;
+import edu.stanford.isis.epad.plugin.lesiontracking.shared.Label;
+import edu.stanford.isis.epad.plugin.lesiontracking.shared.TypeCode;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.Value;
 
 public class TumorAnalysisCalculator
@@ -252,7 +256,7 @@ public class TumorAnalysisCalculator
                     metricSumsByStudyDate.put(studyDate, metricSumsByStudyDate.get(studyDate) + metricValue);
                 }
                 
-                System.out.println("WE HAVE THIS MANY CALCULATION ENTITY COLLECTIONS: " + imageAnnotation.getNumberOfCalculationEntityCollections());
+                //System.out.println("WE HAVE THIS MANY CALCULATION ENTITY COLLECTIONS: " + imageAnnotation.getNumberOfCalculationEntityCollections());
                 for( int k = 0; k < imageAnnotation.getNumberOfCalculationEntityCollections(); k++)
                 {
                     CalculationEntityCollection calculationEntityCollection = imageAnnotation.getCalculationEntityCollection(k);
@@ -272,6 +276,38 @@ public class TumorAnalysisCalculator
                 	if(!anatomicEntityNamesByImageAnnotationName.containsKey(imageAnnotationNameAttribute))
                 		anatomicEntityNamesByImageAnnotationName.put(imageAnnotationNameAttribute, anatomicEntityCodeMeaning);
                 }
+                
+            	for(int k = 0; k < imageAnnotation.getNumberOfImagingPhysicalEntityCollections(); k++)
+            	{
+                	ImagingPhysicalEntityCollection imagingPhysicalEntityCollection = imageAnnotation.getImagingPhysicalEntityCollection(k);
+                	
+                	for(int l = 0; l < imagingPhysicalEntityCollection.getNumberOfImagingPhysicalEntities(); l++)
+                	{
+                		ImagingPhysicalEntity imagingPhysicalEntity = imagingPhysicalEntityCollection.getImagingPhysicalEntity(l);
+                		
+                		if(imagingPhysicalEntity.getNumberOfLabels() > 0)
+                		{
+                			Label label = imagingPhysicalEntity.getLabel(0);
+                			
+                			if("Location".equalsIgnoreCase(label.getValue()))
+                			{
+                				if(imagingPhysicalEntity.getNumberOfTypeCodes() > 0)
+                				{
+                					TypeCode typeCode = imagingPhysicalEntity.getTypeCode(0);
+                                	
+                                	String anatomicEntityCodeSystem = typeCode.getCodeSystem();
+                                	//System.out.println("ANATOMIC ENTITY: " + anatomicEntityCodeSystem);
+                                	
+                                	anatomicEntitiesByImageAnnotation.put(imageAnnotation, anatomicEntityCodeSystem);
+                                	String imageAnnotationNameAttribute = imageAnnotation.getNameAttribute();
+                                	if(!anatomicEntityNamesByImageAnnotationName.containsKey(imageAnnotationNameAttribute))
+                                		anatomicEntityNamesByImageAnnotationName.put(imageAnnotationNameAttribute, anatomicEntityCodeSystem);
+                				}
+                			}
+                		}
+                	}
+            	}
+                	
         	}
         }
 
@@ -341,7 +377,7 @@ public class TumorAnalysisCalculator
                 responseRate = changeInMetricSumSinceMinMetricSum / minMetricSum;
             */
             
-            System.out.println("Response rate: " + responseRate);
+            //System.out.println("Response rate: " + responseRate);
             responseRatesByStudyDate.put(studyDate, responseRate);
         }
     	
@@ -371,14 +407,14 @@ public class TumorAnalysisCalculator
     private float sumLesionMetricValues(CalculationEntityCollection calculationEntityCollection, String targetUnits, String metric)
     {
         float sum = 0;
-        System.out.println("We have this many calculation entities: " + calculationEntityCollection.getNumberOfCalculationEntities());
+        //System.out.println("We have this many calculation entities: " + calculationEntityCollection.getNumberOfCalculationEntities());
         for( int i = 0; i < calculationEntityCollection.getNumberOfCalculationEntities(); i++ )
         {
             CalculationEntity calculationEntity = calculationEntityCollection.getCalculationEntity(i);
 
             /** Only include calculations that match the metric tag. **/
 
-            System.out.println("We have this many descriptions: " + calculationEntity.getNumberOfDescriptions());
+            //System.out.println("We have this many descriptions: " + calculationEntity.getNumberOfDescriptions());
             
             if(calculationEntity.getNumberOfDescriptions() > 0)
             {

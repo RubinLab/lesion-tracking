@@ -2,9 +2,19 @@ package edu.stanford.isis.epad.plugin.lesiontracking.shared;
 
 public class ImagingPhysicalEntity extends AIMElement
 {
-    private static final String[] ALL_ELEMENT_NAMES = { TYPE_CODE };
-    private static final int TYPE_CODE_INDEX = 0;
+    private static final String[] ALL_ELEMENT_NAMES = { LABEL, TYPE_CODE };
+    private static final int LABEL_INDEX = 0, TYPE_CODE_INDEX = 1;
 
+    public int getNumberOfLabels()
+    {
+        return getAllAIMElements().get(LABEL_INDEX).size();
+    }
+
+    public Label getLabel(int i)
+    {
+        return (Label)getAllAIMElements().get(LABEL_INDEX).get(i);
+    }
+    
     public int getNumberOfTypeCodes()
     {
         return getAllAIMElements().get(TYPE_CODE_INDEX).size();

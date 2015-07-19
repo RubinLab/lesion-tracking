@@ -32,7 +32,7 @@ public class LesionTrackingViewImpl extends Composite {
 
 	@UiField(provided = true)
 	public ListBox patientNamesListBox = new ListBox(),
-				   annotationsListBox = new ListBox(),
+				   //annotationsListBox = new ListBox(),
 				   metricsListBox = new ListBox();
 
 	@UiField public Button downloadWordDocumentButton;
@@ -45,7 +45,7 @@ public class LesionTrackingViewImpl extends Composite {
 	public LesionTrackingViewImpl(LesionTracking lesionTracking) {
 		initWidget(uiBinder.createAndBindUi(this));
 		this.lesionTracking = lesionTracking;
-		annotationsListBox.setMultipleSelect(false);
+		//annotationsListBox.setMultipleSelect(false);
 		metricsListBox.setMultipleSelect(false);
 
 		MultiUploader defaultUploader = new MultiUploader();
@@ -83,7 +83,7 @@ public class LesionTrackingViewImpl extends Composite {
 	@UiHandler("metricsListBox")
 	public void onMetricSelected(ChangeEvent changeEvent) {
 
-		downloadWordDocumentButton.setVisible(true);
+		downloadWordDocumentButton.setVisible(false);
 
 		int selectedIndex = metricsListBox.getSelectedIndex();
 		if (selectedIndex != -1) {
@@ -106,7 +106,7 @@ public class LesionTrackingViewImpl extends Composite {
 
 	public void loadPatientNames(List<String> patientNames, int selectedPatientIndex) {
 		recistHTML.setHTML("");
-		annotationsListBox.clear();
+		//annotationsListBox.clear();
 		metricsListBox.clear();
 		patientNamesListBox.clear();
 		for (String patientName : patientNames) {
@@ -129,10 +129,10 @@ public class LesionTrackingViewImpl extends Composite {
 	}
 	
 	public void loadAnnotationsList(List<String> annotations) {
-		annotationsListBox.clear();
+		//annotationsListBox.clear();
 
-		for (String annotation : annotations)
-			annotationsListBox.addItem(annotation);
+		//for (String annotation : annotations)
+		//	annotationsListBox.addItem(annotation);
 	}
 
 	public void loadMetricsList(List<String> metrics) {
@@ -151,5 +151,8 @@ public class LesionTrackingViewImpl extends Composite {
 		recistHTML = recistHTML.replaceAll("<html>", "").replaceAll("</html>", "");
 		recistHTML = recistHTML.replaceAll("<body>", "").replaceAll("</body>", "");
 		this.recistHTML.setHTML(recistHTML);
+
+		downloadWordDocumentButton.setVisible(true);
+
 	}
 }

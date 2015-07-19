@@ -97,7 +97,7 @@ public class ImageAnnotationUtility
             else
             {
 
-            	System.out.println("ImageReferenceEntity does NOT have at least one imageStudy.");
+            	//System.out.println("ImageReferenceEntity does NOT have at least one imageStudy.");
                 for(int j = 0; j < imageReferenceEntity.getNumberOfStudies(); j++)
                 {
                     Study study = imageReferenceEntity.getStudy(j);
@@ -119,7 +119,7 @@ public class ImageAnnotationUtility
             }
         }
         
-        System.out.println("Could not find study date in ImageReferenceEntityCollection.");
+        //System.out.println("Could not find study date in ImageReferenceEntityCollection.");
         return null;
 	}
 	
@@ -190,7 +190,7 @@ public class ImageAnnotationUtility
             }
         }
         
-        System.out.println("Could not find study date in ImageReferenceCollection.");
+        //System.out.println("Could not find study date in ImageReferenceCollection.");
         return null;
     }
 

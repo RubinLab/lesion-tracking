@@ -15,6 +15,9 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Widget;
 
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.CalculationCollection;
+import edu.stanford.isis.epad.plugin.lesiontracking.shared.CalculationEntity;
+import edu.stanford.isis.epad.plugin.lesiontracking.shared.CalculationEntityCollection;
+import edu.stanford.isis.epad.plugin.lesiontracking.shared.Description;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.ImageAnnotation;
 
 public class LesionTracking implements EntryPoint {
@@ -42,10 +45,10 @@ public class LesionTracking implements EntryPoint {
 		projectID = "f";
 		server = "http://epad-dev7.stanford.edu:8080/epad/";
 		session = "55F7B9821F68658AAC9892A86F7BBBD1";
+		*/
 		
 		
 		onGetPatientNames();
-		*/
 		
 	}
 
@@ -79,7 +82,10 @@ public class LesionTracking implements EntryPoint {
 
 	// call the server to get the list of patients in a project
 	public void onGetPatientNames() {
-
+		
+		if(username == null)
+			return;
+		
 		trackingServiceAsync.getPatientNames(projectID, username, session,
 				server, new AsyncCallback<String>() {
 					@Override
@@ -134,11 +140,13 @@ public class LesionTracking implements EntryPoint {
 				new AsyncCallback<Map<Date, List<ImageAnnotation>>>() {
 					@Override
 					public void onFailure(Throwable caught) {
-						System.out.println("getImageAnn error: : " + caught.toString());
+						//System.out.println("getImageAnn error: : " + caught.toString());
 					}
 
 					@Override
 					public void onSuccess(Map<Date, List<ImageAnnotation>> imageAnnotations) {
+						
+						logger.info("NUMBER OF IMAGE ANNOTATIONS: " + imageAnnotations.size());
 						LesionTracking.this.imageAnnotations = imageAnnotations;
 
 						// Extract the unique identifiers and metrics for these
@@ -151,29 +159,47 @@ public class LesionTracking implements EntryPoint {
 						for (ImageAnnotation ia : imageAnnotations.get(studyDate)) {
 							String uid = ia.getUniqueIdentifier();
 							String name = ia.getNameAttribute();
-							if (ia.getNumberOfImageReferenceCollections() == 0)
+							if (ia.getNumberOfImageReferenceCollections() == 0 && ia.getNumberOfImageReferenceEntityCollections() == 0)
 								continue;
 
 							// String date = ImageAnnotationUtility.getStudyDate(ia.getImageReferenceCollection(0)).toString();
 
-							if (ia.getNumberOfCalculationCollections() == 0)
+							if (ia.getNumberOfCalculationCollections() == 0 && ia.getNumberOfCalculationEntityCollections() == 0)
 								continue;
 
 							// Find all of the metrics in this image annotation.
-							CalculationCollection calculationCollection = ia
-									.getCalculationCollection(0);
-							for (int i = 0; i < calculationCollection
-									.getNumberOfCalculations(); i++) {
-								String metric = calculationCollection
-										.getCalculation(i).getDescription();
-
-								if (metric == null || metric.isEmpty())
-									metric = calculationCollection
-											.getCalculation(i).getType();
-
-								if (metric != null && !metrics.contains(metric)
-										&& !metric.isEmpty())
-									metrics.add(metric);
+							
+							if(ia.getNumberOfCalculationCollections() > 0)
+							{
+								CalculationCollection calculationCollection = ia.getCalculationCollection(0);
+								for (int i = 0; i < calculationCollection.getNumberOfCalculations(); i++)
+								{
+									String metric = calculationCollection.getCalculation(i).getDescription();
+	
+									if (metric == null || metric.isEmpty())
+										metric = calculationCollection.getCalculation(i).getType();
+	
+									if (metric != null && !metrics.contains(metric) && !metric.isEmpty())
+										metrics.add(metric);
+								}
+							}
+							
+							if(ia.getNumberOfCalculationEntityCollections() > 0)
+							{
+								CalculationEntityCollection calculationEntityCollection = ia.getCalculationEntityCollection(0);
+								for (int i = 0; i < calculationEntityCollection.getNumberOfCalculationEntities(); i++)
+								{
+									CalculationEntity calculationEntity = calculationEntityCollection.getCalculationEntity(i);
+									
+									if(calculationEntity.getNumberOfDescriptions() > 0)
+									{
+										Description description = calculationEntity.getDescription(0);
+										String metric = description.getValue();
+										
+										if (metric != null && !metrics.contains(metric) && !metric.isEmpty())
+											metrics.add(metric);
+									}
+								}
 							}
 
 							// annotations.add("Annotation UID: " + uid +

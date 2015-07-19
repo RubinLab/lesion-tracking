@@ -47,7 +47,8 @@ public abstract class AIMElement implements IsSerializable
                          IMAGING_OBSERVATION_ENTITY_COLLECTION = "ImagingObservationEntityCollection",
                          IMAGING_OBSERVATION_ENTITY    = "ImagingObservationEntity",
                          DESCRIPTION				   = "Description",
-                         VALUE						   = "Value";
+                         VALUE						   = "Value",
+                         LABEL						   = "Label";
 
     private ArrayList<ArrayList<AIMElement>> aimElements = new ArrayList<ArrayList<AIMElement>>();
     private ArrayList<AIMAttribute> aimAttributes = new ArrayList<AIMAttribute>();
@@ -176,6 +177,9 @@ public abstract class AIMElement implements IsSerializable
         
         if(name.equalsIgnoreCase(VALUE))
         	return new Value();
+        
+        if(name.equalsIgnoreCase(LABEL))
+        	return new Label();
 
         System.out.println("No AIM element of type " + name);
         return null;

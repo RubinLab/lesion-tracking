@@ -149,7 +149,7 @@ public class AIMFileReader
         Element element = (Element)node;
         NamedNodeMap attributesList = element.getAttributes();
         
-        System.out.println("Getting AIM attribtues for aimElement "  + aimElement.getName());
+        //System.out.println("Getting AIM attribtues for aimElement "  + aimElement.getName());
 
         String[] allAIMAttributeNames = aimElement.getAllAIMAttributeNames();
         for(int i = 0; i < attributesList.getLength(); i++)
@@ -194,7 +194,7 @@ public class AIMFileReader
             
             if(!foundElementName)
             {
-            	System.out.println("Could not find element: " + childElementName + " from parent element: " + element.getNodeName());
+            	//System.out.println("Could not find element: " + childElementName + " from parent element: " + element.getNodeName());
             }
         }
     }
