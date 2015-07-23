@@ -12,6 +12,8 @@ import com.google.gwt.core.client.JsonUtils;
 import com.google.gwt.user.client.Cookies;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.google.gwt.user.client.ui.RootLayoutPanel;
+import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.Widget;
 
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.CalculationCollection;
@@ -55,7 +57,7 @@ public class LesionTracking implements EntryPoint {
 	public void startModule() {
 		logger.info("startModule");
 	}
-
+/*
 	// TODO don't need this
 	public void onSetClient() {
 		username = Cookies.getCookie("ePADLoggedinUser");
@@ -79,7 +81,7 @@ public class LesionTracking implements EntryPoint {
 			}
 		});
 	}
-
+*/
 	// call the server to get the list of patients in a project
 	public void onGetPatientNames() {
 		
@@ -147,6 +149,7 @@ public class LesionTracking implements EntryPoint {
 					public void onSuccess(Map<Date, List<ImageAnnotation>> imageAnnotations) {
 						
 						logger.info("NUMBER OF IMAGE ANNOTATIONS: " + imageAnnotations.size());
+						
 						LesionTracking.this.imageAnnotations = imageAnnotations;
 
 						// Extract the unique identifiers and metrics for these
@@ -427,11 +430,6 @@ public class LesionTracking implements EntryPoint {
 	public void setProjectID(String projectID) {
 		this.projectID = projectID;
 	}
-
-	public void setServer(String server) {
-		this.server = server;
-	}
-
 	public void activate(String projectID, String patientID, String username, String session, String server) {
 
 		this.projectID = projectID;
