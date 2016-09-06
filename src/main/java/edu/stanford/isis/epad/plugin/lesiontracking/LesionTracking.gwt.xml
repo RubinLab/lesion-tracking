@@ -3,7 +3,9 @@
 	<inherits name='com.google.gwt.user.User' />
 	<inherits name='com.google.gwt.visualization.Visualization' />
 	<inherits name="gwtupload.GWTUpload" />
-
+	
+    <inherits name='org.w3c.dom.DOM' />
+	<inherits name='edu.stanford.hakan.aim4api.AIMAPI' />
 	<inherits name="com.google.gwt.http.HTTP" />
 
 	<stylesheet src="Upload.css" />

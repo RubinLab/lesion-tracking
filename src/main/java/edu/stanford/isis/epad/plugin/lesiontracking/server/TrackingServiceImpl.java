@@ -16,9 +16,12 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 
 import javax.servlet.ServletContext;
@@ -50,17 +53,13 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import com.ibm.icu.text.DecimalFormat;
 
 import edu.stanford.isis.epad.plugin.lesiontracking.client.TrackingService;
-import edu.stanford.isis.epad.plugin.lesiontracking.server.TumorAnalysisCalculator.CalculationResult;
-import edu.stanford.isis.epad.plugin.lesiontracking.shared.ImageAnnotation;
-import edu.stanford.isis.epad.plugin.lesiontracking.shared.ImagingObservation;
-import edu.stanford.isis.epad.plugin.lesiontracking.shared.ImagingObservationCharacteristic;
-import edu.stanford.isis.epad.plugin.lesiontracking.shared.ImagingObservationCharacteristicCollection;
-import edu.stanford.isis.epad.plugin.lesiontracking.shared.ImagingObservationCollection;
-import edu.stanford.isis.epad.plugin.lesiontracking.shared.ImagingObservationEntity;
-import edu.stanford.isis.epad.plugin.lesiontracking.shared.ImagingObservationEntityCollection;
-import edu.stanford.isis.epad.plugin.lesiontracking.shared.ImagingPhysicalEntity;
-import edu.stanford.isis.epad.plugin.lesiontracking.shared.ImagingPhysicalEntityCollection;
-import edu.stanford.isis.epad.plugin.lesiontracking.shared.TypeCode;
+import edu.stanford.isis.epad.plugin.lesiontracking.server.TumorAnalysisCalculator.CalculationResultL;
+import edu.stanford.hakan.aim4api.base.AimException;
+import edu.stanford.hakan.aim4api.base.ImageAnnotationCollection;
+import edu.stanford.hakan.aim4api.compability.aimv3.CalculationCollection;
+//import edu.stanford.hakan.aim4api.compability.aimv3.Aim;
+import edu.stanford.hakan.aim4api.project.epad.Aim;
+import edu.stanford.hakan.aim4api.usage.AnnotationGetter;
 
 public class TrackingServiceImpl extends RemoteServiceServlet implements
 		TrackingService {
@@ -76,7 +75,7 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 	}
 	private static final long serialVersionUID = 1830906991196368571L;
 	public static final String LIST = "list", VALUES = "value",
-			PERSON = "Person", IMAGE_ANNOTATION = "ImageAnnotation";
+			PERSON = "Person", IMAGE_ANNOTATION = "Aim";
 	private DefaultHttpClient client;
 
 	static final TempLogger logger = TempLogger.getInstance();
@@ -155,218 +154,160 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 	 * @throws IOException
 	 * @throws ParserConfigurationException
 	 */
-	public static Map<Date, List<ImageAnnotation>> parseXMLStringForImageAnnotations(String result, Boolean isNonTarget) throws SAXException, IOException, ParserConfigurationException
+	public static Map<Date, List<Aim>> parseXMLStringForImageAnnotations(String result, Boolean isNonTarget) throws SAXException, IOException, ParserConfigurationException
 	{
-		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-		DocumentBuilder db = dbf.newDocumentBuilder();
-		Document document = db.parse(new ByteArrayInputStream(result.getBytes()));
-		Element element = document.getDocumentElement();
-		NodeList nodeList = element.getChildNodes();
+		
 
-		List<ImageAnnotation> imageAnnotations = new ArrayList<ImageAnnotation>();
-
-		for (int i = 0; i < nodeList.getLength(); i++) {
-			Node node = nodeList.item(i);
-			if (node instanceof Element) {
-				element = (Element) nodeList.item(i);
-				String nodeName = element.getNodeName();
-				
-				
-				if ("ImageAnnotationCollection".equals(nodeName)) {
-					
-					NodeList imageAnnotationCollectionChildren = node.getChildNodes();
-					for(int j = 0; j < imageAnnotationCollectionChildren.getLength(); j++)
-					{
-						Node imageAnnotationCollectionChild = imageAnnotationCollectionChildren.item(j);
-						if (imageAnnotationCollectionChild instanceof Element)
-						{
-							element = (Element) imageAnnotationCollectionChild;
-							
-							nodeName = element.getNodeName();
-							if ("imageAnnotations".equals(nodeName)) {
-								NodeList imageAnnotationsChildren = imageAnnotationCollectionChild.getChildNodes();
-								for(int k = 0; k < imageAnnotationsChildren.getLength(); k++)
-								{
-									Node imageAnnotationsChild = imageAnnotationsChildren.item(k);
-									if (imageAnnotationsChild instanceof Element)
-									{
-										element = (Element) imageAnnotationsChild;
-
-										nodeName = element.getNodeName();
-										if ("ImageAnnotation".equals(nodeName)) {
-											logger.info("Image ANNOTATION: " + nodeName);
-											imageAnnotations.add(AIMFileReader
-													.parseImageAnnotationFromNode(element, ""));
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-				else
-					if ("ImageAnnotation".equals(nodeName)) {
-						imageAnnotations.add(AIMFileReader
-								.parseImageAnnotationFromNode(element, ""));
-					}
-			}
+		List<Aim> imageAnnotations=new ArrayList<Aim>(); 
+		
+		try {
+			imageAnnotations = parseAnnotations(result);
+		} catch (AimException e) {
+			logger.warning("Couldn't parse annotation : " + e.getMessage(),e);
 		}
 
-		Map<Date, List<ImageAnnotation>> targetImageAnnotationsByStudyDate = new HashMap<Date, List<ImageAnnotation>>();
+		Map<Date, List<Aim>> targetImageAnnotationsByStudyDate = new HashMap<Date, List<Aim>>();
 		logger.info("Number of image annotations : " + imageAnnotations.size());
-		for (ImageAnnotation imageAnnotation : imageAnnotations)
+		for (Aim aim : imageAnnotations)
 		{
+//			if (!aim.getCodeValue().equals("RECIST")) //not recist skip
+//				continue;
 			Date studyDate;
-			try
-			{
-				if(imageAnnotation.getNumberOfImageReferenceCollections() > 0)
-				{
-					studyDate = ImageAnnotationUtility.getStudyDate(imageAnnotation.getImageReferenceCollection(0));
-
-
-                	logger.info("Got studyDate from ImageReferenceCollection: " + studyDate);
-				}
-				else
-					if(imageAnnotation.getNumberOfImageReferenceEntityCollections() > 0)
-					{
-						studyDate = ImageAnnotationUtility.getStudyDate(imageAnnotation.getImageReferenceEntityCollection(0));
-						logger.info("Got studyDate from ImageReferenceEntityCollection: " + studyDate);
-					}
-					else
-					{
-						logger.info("Could not find studyDate for image annotation.");
-						continue;
-					}				
-				
-			}
-			catch(ParseException parseException)
-			{
-				studyDate = new Date(0l);
-				parseException.printStackTrace();
-				logger.info("A parse exception was thrown, skipping imageAnnotion.");
-				continue;
-			}
 			
+			studyDate=aim.getFirstStudyDate();
+			logger.info("Got studyDate from ImageReferenceCollection: " + studyDate);
+								
 			
 			if(!targetImageAnnotationsByStudyDate.containsKey(studyDate))
-				targetImageAnnotationsByStudyDate.put(studyDate, new ArrayList<ImageAnnotation>());
+				targetImageAnnotationsByStudyDate.put(studyDate, new ArrayList<Aim>());
 
 			String targetLesionFlag = "";
-			/*if(imageAnnotation.getNumberOfImagingObservationCollections() > 0)
-			{
-				ImagingObservationCollection imagingObservationCollection = imageAnnotation.getImagingObservationCollection(0);
-				
-				if(imagingObservationCollection.getNumberOfImagingObservations() > 0)
-				{
-					ImagingObservation imagingObservation = imagingObservationCollection.getImagingObservation(0);
-					
-					if(imagingObservation.getNumberOfImagingObservationCharacteristicCollections() > 0)
-					{
-						ImagingObservationCharacteristicCollection imagingObservationCharacteristicCollection = imagingObservation.getImagingObservationCharacteristicCollection(0);
-						
-						if(imagingObservationCharacteristicCollection.getNumberOfImagingObservationCharacteristics() > 0)
-						{
-							ImagingObservationCharacteristic imagingObservationCharacteristic = imagingObservationCharacteristicCollection.getImagingObservationCharacteristic(0);
-							
-
-							if(imagingObservationCharacteristic.getNumberOfTypeCodes() > 0)
-							{
-								TypeCode typeCode = imagingObservationCharacteristic.getTypeCode(0);
-								
-								targetLesionFlag = typeCode.getIsoDisplayName(0).getValue();
-							}
-							//targetLesionFlag = imagingObservationCharacteristicCollection.getImagingObservationCharacteristic(0).getCodeMeaning();
-						}
-					}
-				}
-			}
+			targetLesionFlag = aim.getImagingObservationCollection().getImagingObservationList().get(0).getImagingObservationCharacteristicCollection().getImagingObservationCharacteristicList().get(0).getCodeMeaning();
+			if (targetLesionFlag ==null || targetLesionFlag.equals(""))
+				targetLesionFlag = aim.getImagingObservationCollection().getImagingObservationList().get(0).getImagingObservationCharacteristicCollection().getImagingObservationCharacteristicList().get(0).getCodingSchemeDesignator();
 			
-			if(targetLesionFlag == null)
-			{
-				if(imageAnnotation.getNumberOfImagingObservationEntityCollections() > 0)
-				{
-					ImagingObservationEntityCollection imagingObservationEntityCollection = imageAnnotation.getImagingObservationEntityCollection(0);
-					
-					if(imagingObservationEntityCollection.getNumberOfImagingObservationEntities() > 0)
-					{
-						ImagingObservationEntity imagingObservationEntity = imagingObservationEntityCollection.getImagingObservationEntity(0);
-						
-						if(imagingObservationEntity.getNumberOfImagingObservationCharacteristicCollections() > 0)
-						{
-							ImagingObservationCharacteristicCollection imagingObservationCharacteristicCollection = imagingObservationEntity.getImagingObservationCharacteristicCollection(0);
-							
-							if(imagingObservationCharacteristicCollection.getNumberOfImagingObservationCharacteristics() > 0)
-							{
-								ImagingObservationCharacteristic imagingObservationCharacteristic = imagingObservationCharacteristicCollection.getImagingObservationCharacteristic(0);
-								
-
-								if(imagingObservationCharacteristic.getNumberOfTypeCodes() > 0)
-								{
-									TypeCode typeCode = imagingObservationCharacteristic.getTypeCode(0);
-									
-									targetLesionFlag = typeCode.getIsoDisplayName(0).getValue();
-								}
-							}
-						}
-					}
-				}
-			}
+			if (targetLesionFlag ==null || targetLesionFlag.equals(""))
+				targetLesionFlag = aim.getImagingObservationCollection().getImagingObservationList().get(0).getImagingObservationCharacteristicCollection().getImagingObservationCharacteristicList().get(0).getAllowedTerm().getCodeMeaning();
 			
-			if(targetLesionFlag == null)
-			{
-				if(imageAnnotation.getNumberOfImagingPhysicalEntityCollections() > 0)
-				{
-					ImagingPhysicalEntityCollection imagingPhysicalEntityCollection = imageAnnotation.getImagingPhysicalEntityCollection(0);
-					
-					if(imagingPhysicalEntityCollection.getNumberOfImagingPhysicalEntities() > 0)
-					{
-						ImagingPhysicalEntity imagingPhysicalEntity = imagingPhysicalEntityCollection.getImagingPhysicalEntity(0);
-						
-						if(imagingPhysicalEntity.getNumberOfTypeCodes() > 0)
-						{
-							TypeCode typeCode = imagingPhysicalEntity.getTypeCode(0);
-							
-							targetLesionFlag = typeCode.getIsoDisplayName(0).getValue();
-						}
-					}
-				}
-			}
-			
-			if(targetLesionFlag == null)
-			{
-				logger.info("Could not find target lesion flag, skipping annotation.");
-				//System.out.println("Could not find target lesion flag, skipping annotation.");
-				continue;
-			}*/
+			logger.info("targetLesionFlag "+targetLesionFlag);
 			
 			//logger.info("TARGET LESION STRING: " + targetLesionFlag);
-			logger.info("image annotation :" + imageAnnotation.getNameAttribute());
+			logger.info("image annotation :" + aim.getName());
 			
 			if(isNonTarget == null) {
 				logger.info("TARGET flag is null" + " Study date" + studyDate);
-				targetImageAnnotationsByStudyDate.get(studyDate).add(imageAnnotation);
+				targetImageAnnotationsByStudyDate.get(studyDate).add(aim);
 			}
 			else
 			{
 				logger.info("TARGET flag is not null");
 				String targetString = targetLesionFlag.toLowerCase();
 				if(isNonTarget && targetString.contains("non-target"))
-					targetImageAnnotationsByStudyDate.get(studyDate).add(imageAnnotation);
+					targetImageAnnotationsByStudyDate.get(studyDate).add(aim);
 				else if(!isNonTarget && !targetString.contains("non-target") && targetString.contains("target"))
-					targetImageAnnotationsByStudyDate.get(studyDate).add(imageAnnotation);
+					targetImageAnnotationsByStudyDate.get(studyDate).add(aim);
 			}
-			imageAnnotation.outputAIMHeirarchy(2);
-			logger.info("GET from the map: ----");
-			ImageAnnotation ia = targetImageAnnotationsByStudyDate.get(studyDate).get(0);
-			ia.outputAIMHeirarchy(2);
+//			aim.outputAIMHeirarchy(2);
+//			logger.info("GET from the map: ----");
+//			Aim ia = targetImageAnnotationsByStudyDate.get(studyDate).get(0);
+//			ia.outputAIMHeirarchy(2);
 		}
 		
 		logger.info("The numner of annotations" + targetImageAnnotationsByStudyDate.size());
 		
 		return targetImageAnnotationsByStudyDate;
 	}
+	
+	private static List<Aim> parseAnnotations(String text) throws AimException {
 
-	public Map<Date, List<ImageAnnotation>> getImageAnnotationsForPatient(
+		List<Aim> aims = new ArrayList<Aim>();
+		List<ImageAnnotationCollection> imageAnnotationCollections = new ArrayList<ImageAnnotationCollection>();
+
+		imageAnnotationCollections = AnnotationGetter
+				.getImageAnnotationCollectionsFromString(text, "");
+
+		// convert them to Aims
+		for (ImageAnnotationCollection iac : imageAnnotationCollections) {
+			aims.add(new Aim(new edu.stanford.hakan.aim4api.compability.aimv3.ImageAnnotation(iac)));
+		}
+
+		return aims;
+	}
+	
+	public List<List<String>> getMetricsAndANamesForPatient(
+			String projectID, String patientID, String username,
+			String session, String server, Boolean isNonTarget) throws Exception {
+		Map<Date, List<Aim>> imageAnnotations = getImageAnnotationsForPatient(projectID, patientID, username, session, server, isNonTarget);
+		// Extract the unique identifiers and metrics for these
+		// annotations.
+		List<String> annotations = new ArrayList<String>();
+		List<String> metrics = new ArrayList<String>();
+
+		for(Date studyDate : imageAnnotations.keySet())
+			
+		for (Aim ia : imageAnnotations.get(studyDate)) {
+			String uid = ia.getUniqueIdentifier();
+			String name = ia.getName();
+			logger.info("Annotation name" + name + " " +ia.getName());
+
+			if (ia.getImageReferenceCollection().getImageReferenceList().size() == 0 )
+				continue;
+
+			// String date = ImageAnnotationUtility.getStudyDate(ia.getImageReferenceCollection(0)).toString();
+			logger.info("calculations size:"+ia.getCalculationCollection().getCalculationList().size());
+			
+			if (ia.getCalculationCollection().getCalculationList().size()== 0 && ia.getCalculations().size()==0)
+				continue;
+
+			// Find all of the metrics in this image annotation.
+			if(ia.getCalculationCollection().getCalculationList().size() > 0)
+			{
+				CalculationCollection calculationCollection = ia.getCalculationCollection();
+				for (int i = 0; i < calculationCollection.getCalculationList().size(); i++)
+				{
+					String metric = calculationCollection.getCalculationList().get(i).getDescription();
+					logger.info("metric desc:"+metric);
+					if (metric == null || metric.isEmpty())
+						metric = calculationCollection.getCalculationList().get(i).getCodeMeaning();
+					logger.info("metric:"+metric);
+					if (metric != null && !metrics.contains(metric) && !metric.isEmpty())
+						metrics.add(metric);
+					
+					
+				}
+			}
+			
+//			if(ia.getNumberOfCalculationEntityCollections() > 0)
+//			{
+//				CalculationEntityCollection calculationEntityCollection = ia.getCalculationEntityCollection(0);
+//				for (int i = 0; i < calculationEntityCollection.getNumberOfCalculationEntities(); i++)
+//				{
+//					CalculationEntity calculationEntity = calculationEntityCollection.getCalculationEntity(i);
+//					
+//					if(calculationEntity.getNumberOfDescriptions() > 0)
+//					{
+//						Description description = calculationEntity.getDescription(0);
+//						String metric = description.getValue();
+//						
+//						if (metric != null && !metrics.contains(metric) && !metric.isEmpty())
+//							metrics.add(metric);
+//					}
+//				}
+//			}
+
+			// annotations.add("Annotation UID: " + uid +
+			// " ------ Study Date: " + date);
+			annotations.add(name);
+		}
+		List<List<String>> results=new ArrayList<List<String>>();
+		results.add(annotations);
+		results.add(metrics);
+		return results;
+	}
+	
+	
+
+	public Map<Date, List<Aim>> getImageAnnotationsForPatient(
 			String projectID, String patientID, String username,
 			String session, String server, Boolean isNonTarget) throws Exception {
 
@@ -416,7 +357,7 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 		return parseXMLStringForImageAnnotations(result, isNonTarget);
 	}
 
-	public String renderDocument(String patientName, String physicianName, Date date, CalculationResult targetCalculationResult, CalculationResult nonTargetCalculationResult)
+	public String renderDocument(String patientName, String physicianName, Date date, CalculationResultL targetCalculationResult, CalculationResultL nonTargetCalculationResult)
 	{
         try {
 
@@ -521,26 +462,26 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 		//trackingServiceImpl.getRECISTHTML("RECIST", "7", "admin", "http://epad-public.stanford.edu:8080", "FD18E22C7A2A98C2446453D397C6F803", "LineLength");
 		
 		String result = readFile("image_annotations.xml", Charset.defaultCharset());
-		Map<Date, List<ImageAnnotation>> targetImageAnnotationsByStudyDate = trackingServiceImpl.parseXMLStringForImageAnnotations(result, false);
-		trackingServiceImpl.getRECISTHTML(targetImageAnnotationsByStudyDate, new HashMap<Date, List<ImageAnnotation>>(), "linelength", "Aaron");
+		Map<Date, List<Aim>> targetImageAnnotationsByStudyDate = trackingServiceImpl.parseXMLStringForImageAnnotations(result, false);
+		trackingServiceImpl.getRECISTHTML(targetImageAnnotationsByStudyDate, new HashMap<Date, List<Aim>>(), "linelength", "Aaron");
 		
 		//System.out.println(targetImageAnnotationsByStudyDate.size());
 	}
 
 	
-	private String getRECISTHTML(Map<Date,List<ImageAnnotation>> targetImageAnnotationsByStudyDate,
-										Map<Date,List<ImageAnnotation>> nonTargetImageAnnotationsByStudyDate,
+	private String getRECISTHTML(Map<Date,List<Aim>> targetImageAnnotationsByStudyDate,
+										Map<Date,List<Aim>> nonTargetImageAnnotationsByStudyDate,
 										String selectedMetric, String patientID)
 	{
 		GWT.log("In the getRECISTHTML from the tracking service");
 		// Target lesion calculation.
-		Map<String, CalculationResult> targetCalculationResultsByMetric = new HashMap<String, CalculationResult>();
+		Map<String, CalculationResultL> targetCalculationResultsByMetric = new HashMap<String, CalculationResultL>();
 		TumorAnalysisCalculator targetTumorAnalysisCalculator = new TumorAnalysisCalculator(targetImageAnnotationsByStudyDate);
 		for(String metric : new String[] { selectedMetric }) targetCalculationResultsByMetric.put(metric, targetTumorAnalysisCalculator.calculateRECIST(metric, "mm"));
 		
 		// Non-target lesion calculation.
 
-		Map<String, CalculationResult> nonTargetCalculationResultsByMetric = new HashMap<String, CalculationResult>();
+		Map<String, CalculationResultL> nonTargetCalculationResultsByMetric = new HashMap<String, CalculationResultL>();
 		if(nonTargetImageAnnotationsByStudyDate != null && !nonTargetImageAnnotationsByStudyDate.isEmpty())
 		{
 			TumorAnalysisCalculator nonTargetTumorAnalysisCalculator = new TumorAnalysisCalculator(nonTargetImageAnnotationsByStudyDate);
@@ -557,7 +498,7 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 								String server, String session, String selectedMetric) throws Exception
 	{
 		/*
-    	Map<Date, List<ImageAnnotation>> imageAnnotationsByStudyDate = getImageAnnotationsForPatient(null);
+    	Map<Date, List<Aim>> imageAnnotationsByStudyDate = getImageAnnotationsForPatient(null);
     	
 		String username  = "admin",
 			   projectID = "f",
@@ -570,8 +511,8 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 		
 		getPatientNames(projectID, username, session, server);
 
-		Map<Date,List<ImageAnnotation>> targetImageAnnotationsByStudyDate = getImageAnnotationsForPatient(projectID, patientID, username, session, server, false);
-		Map<Date,List<ImageAnnotation>> nonTargetImageAnnotationsByStudyDate = getImageAnnotationsForPatient(projectID, patientID, username, session, server, true);
+		Map<Date,List<Aim>> targetImageAnnotationsByStudyDate = getImageAnnotationsForPatient(projectID, patientID, username, session, server, false);
+		Map<Date,List<Aim>> nonTargetImageAnnotationsByStudyDate = getImageAnnotationsForPatient(projectID, patientID, username, session, server, true);
 		
 		return getRECISTHTML(targetImageAnnotationsByStudyDate, nonTargetImageAnnotationsByStudyDate, selectedMetric, patientID);
 	}
