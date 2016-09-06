@@ -33,7 +33,7 @@ public class LesionTrackingViewImpl extends Composite {
 
 	@UiField(provided = true)
 	public ListBox patientNamesListBox = new ListBox(),
-				   //annotationsListBox = new ListBox(),
+				   annotationsListBox = new ListBox(),
 				   metricsListBox = new ListBox();
 
 	@UiField public Button downloadWordDocumentButton;
@@ -46,7 +46,7 @@ public class LesionTrackingViewImpl extends Composite {
 	public LesionTrackingViewImpl(LesionTracking lesionTracking) {
 		initWidget(uiBinder.createAndBindUi(this));
 		this.lesionTracking = lesionTracking;
-		//annotationsListBox.setMultipleSelect(false);
+		annotationsListBox.setMultipleSelect(false);
 		metricsListBox.setMultipleSelect(false);
 
 		MultiUploader defaultUploader = new MultiUploader();
@@ -84,9 +84,12 @@ public class LesionTrackingViewImpl extends Composite {
 	@UiHandler("metricsListBox")
 	public void onMetricSelected(ChangeEvent changeEvent) {
 
-		downloadWordDocumentButton.setVisible(false);
+		downloadWordDocumentButton.setHTML("<i class=\"fa fa-spinner fa-spin\"></i>");
+		downloadWordDocumentButton.setText("Loading...");
+		//downloadWordDocumentButton.setVisible(false);
 
 		int selectedIndex = metricsListBox.getSelectedIndex();
+		GWT.log("metric list box size :" + metricsListBox.getItemCount());
 		if (selectedIndex != -1) {
 			List<String> selectedMetrics = new ArrayList<String>();
 			int numberOfItems = metricsListBox.getItemCount();
@@ -107,7 +110,7 @@ public class LesionTrackingViewImpl extends Composite {
 
 	public void loadPatientNames(List<String> patientNames, int selectedPatientIndex) {
 		recistHTML.setHTML("");
-		//annotationsListBox.clear();
+		annotationsListBox.clear();
 		metricsListBox.clear();
 		patientNamesListBox.clear();
 		for (String patientName : patientNames) {
@@ -130,14 +133,15 @@ public class LesionTrackingViewImpl extends Composite {
 	}
 	
 	public void loadAnnotationsList(List<String> annotations) {
-		//annotationsListBox.clear();
+		annotationsListBox.clear();
 
-		//for (String annotation : annotations)
-		//	annotationsListBox.addItem(annotation);
+		for (String annotation : annotations)
+			annotationsListBox.addItem(annotation);
 	}
 
 	public void loadMetricsList(List<String> metrics) {
 		
+		GWT.log("Metric size: "+ metrics.size());
 		metricsListBox.clear();
 		for (String metric : metrics)
 			metricsListBox.addItem(metric);
@@ -150,11 +154,14 @@ public class LesionTrackingViewImpl extends Composite {
 	}
 	
 	public void showRECISTHTML(String recistHTML) {
+		downloadWordDocumentButton.setText("Dowload Word document");
+		downloadWordDocumentButton.setVisible(true);
+		
 		recistHTML = recistHTML.replaceAll("<html>", "").replaceAll("</html>", "");
 		recistHTML = recistHTML.replaceAll("<body>", "").replaceAll("</body>", "");
 		this.recistHTML.setHTML(recistHTML);
 
-		downloadWordDocumentButton.setVisible(true);
+		
 
 	}
 }

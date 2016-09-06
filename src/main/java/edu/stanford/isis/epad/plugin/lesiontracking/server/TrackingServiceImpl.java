@@ -45,6 +45,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import com.ibm.icu.text.DecimalFormat;
 
@@ -170,7 +171,7 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 				element = (Element) nodeList.item(i);
 				String nodeName = element.getNodeName();
 				
-
+				
 				if ("ImageAnnotationCollection".equals(nodeName)) {
 					
 					NodeList imageAnnotationCollectionChildren = node.getChildNodes();
@@ -193,7 +194,7 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 
 										nodeName = element.getNodeName();
 										if ("ImageAnnotation".equals(nodeName)) {
-											
+											logger.info("Image ANNOTATION: " + nodeName);
 											imageAnnotations.add(AIMFileReader
 													.parseImageAnnotationFromNode(element, ""));
 										}
@@ -212,7 +213,7 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 		}
 
 		Map<Date, List<ImageAnnotation>> targetImageAnnotationsByStudyDate = new HashMap<Date, List<ImageAnnotation>>();
-
+		logger.info("Number of image annotations : " + imageAnnotations.size());
 		for (ImageAnnotation imageAnnotation : imageAnnotations)
 		{
 			Date studyDate;
@@ -223,17 +224,17 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 					studyDate = ImageAnnotationUtility.getStudyDate(imageAnnotation.getImageReferenceCollection(0));
 
 
-                	//System.out.println("Got studyDate from ImageReferenceCollection: " + studyDate);
+                	logger.info("Got studyDate from ImageReferenceCollection: " + studyDate);
 				}
 				else
 					if(imageAnnotation.getNumberOfImageReferenceEntityCollections() > 0)
 					{
 						studyDate = ImageAnnotationUtility.getStudyDate(imageAnnotation.getImageReferenceEntityCollection(0));
-						//System.out.println("Got studyDate from ImageReferenceEntityCollection: " + studyDate);
+						logger.info("Got studyDate from ImageReferenceEntityCollection: " + studyDate);
 					}
 					else
 					{
-						//System.out.println("Could not find studyDate for image annotation.");
+						logger.info("Could not find studyDate for image annotation.");
 						continue;
 					}				
 				
@@ -242,7 +243,7 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 			{
 				studyDate = new Date(0l);
 				parseException.printStackTrace();
-				//System.out.println("A parse exception was thrown, skipping imageAnnotion.");
+				logger.info("A parse exception was thrown, skipping imageAnnotion.");
 				continue;
 			}
 			
@@ -250,8 +251,8 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 			if(!targetImageAnnotationsByStudyDate.containsKey(studyDate))
 				targetImageAnnotationsByStudyDate.put(studyDate, new ArrayList<ImageAnnotation>());
 
-			String targetLesionFlag = null;
-			if(imageAnnotation.getNumberOfImagingObservationCollections() > 0)
+			String targetLesionFlag = "";
+			/*if(imageAnnotation.getNumberOfImagingObservationCollections() > 0)
 			{
 				ImagingObservationCollection imagingObservationCollection = imageAnnotation.getImagingObservationCollection(0);
 				
@@ -265,7 +266,16 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 						
 						if(imagingObservationCharacteristicCollection.getNumberOfImagingObservationCharacteristics() > 0)
 						{
-							targetLesionFlag = imagingObservationCharacteristicCollection.getImagingObservationCharacteristic(0).getCodeMeaning();
+							ImagingObservationCharacteristic imagingObservationCharacteristic = imagingObservationCharacteristicCollection.getImagingObservationCharacteristic(0);
+							
+
+							if(imagingObservationCharacteristic.getNumberOfTypeCodes() > 0)
+							{
+								TypeCode typeCode = imagingObservationCharacteristic.getTypeCode(0);
+								
+								targetLesionFlag = typeCode.getIsoDisplayName(0).getValue();
+							}
+							//targetLesionFlag = imagingObservationCharacteristicCollection.getImagingObservationCharacteristic(0).getCodeMeaning();
 						}
 					}
 				}
@@ -294,7 +304,7 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 								{
 									TypeCode typeCode = imagingObservationCharacteristic.getTypeCode(0);
 									
-									targetLesionFlag = typeCode.getCodeSystem();
+									targetLesionFlag = typeCode.getIsoDisplayName(0).getValue();
 								}
 							}
 						}
@@ -316,7 +326,7 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 						{
 							TypeCode typeCode = imagingPhysicalEntity.getTypeCode(0);
 							
-							targetLesionFlag = typeCode.getCodeSystem();
+							targetLesionFlag = typeCode.getIsoDisplayName(0).getValue();
 						}
 					}
 				}
@@ -324,24 +334,35 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 			
 			if(targetLesionFlag == null)
 			{
+				logger.info("Could not find target lesion flag, skipping annotation.");
 				//System.out.println("Could not find target lesion flag, skipping annotation.");
 				continue;
-			}
+			}*/
 			
-			//System.out.println("TARGET LESION STRING: " + targetLesionFlag);
+			//logger.info("TARGET LESION STRING: " + targetLesionFlag);
+			logger.info("image annotation :" + imageAnnotation.getNameAttribute());
 			
-			if(isNonTarget == null)
+			if(isNonTarget == null) {
+				logger.info("TARGET flag is null" + " Study date" + studyDate);
 				targetImageAnnotationsByStudyDate.get(studyDate).add(imageAnnotation);
+			}
 			else
 			{
+				logger.info("TARGET flag is not null");
 				String targetString = targetLesionFlag.toLowerCase();
 				if(isNonTarget && targetString.contains("non-target"))
 					targetImageAnnotationsByStudyDate.get(studyDate).add(imageAnnotation);
 				else if(!isNonTarget && !targetString.contains("non-target") && targetString.contains("target"))
 					targetImageAnnotationsByStudyDate.get(studyDate).add(imageAnnotation);
 			}
+			imageAnnotation.outputAIMHeirarchy(2);
+			logger.info("GET from the map: ----");
+			ImageAnnotation ia = targetImageAnnotationsByStudyDate.get(studyDate).get(0);
+			ia.outputAIMHeirarchy(2);
 		}
-
+		
+		logger.info("The numner of annotations" + targetImageAnnotationsByStudyDate.size());
+		
 		return targetImageAnnotationsByStudyDate;
 	}
 
@@ -511,6 +532,7 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 										Map<Date,List<ImageAnnotation>> nonTargetImageAnnotationsByStudyDate,
 										String selectedMetric, String patientID)
 	{
+		GWT.log("In the getRECISTHTML from the tracking service");
 		// Target lesion calculation.
 		Map<String, CalculationResult> targetCalculationResultsByMetric = new HashMap<String, CalculationResult>();
 		TumorAnalysisCalculator targetTumorAnalysisCalculator = new TumorAnalysisCalculator(targetImageAnnotationsByStudyDate);

@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.gwt.core.shared.GWT;
+
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.Calculation;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.CalculationCollection;
 import edu.stanford.isis.epad.plugin.lesiontracking.shared.CalculationData;
@@ -30,6 +32,7 @@ import edu.stanford.isis.epad.plugin.lesiontracking.shared.Value;
 public class TumorAnalysisCalculator
 {
     private Map<Date, List<ImageAnnotation>> imageAnnotationsByStudyDate;
+    static final TempLogger logger = TempLogger.getInstance();
 
     public class CalculationResult
     {
@@ -48,6 +51,8 @@ public class TumorAnalysisCalculator
         						 responseRatesByStudyDate = new HashMap<Date, Float>();
     	private String metric,
     				   unitOfMeasure;
+    	
+    	
     	
     	public CalculationResult(String metric, String unitOfMeasure)
     	{
@@ -229,6 +234,7 @@ public class TumorAnalysisCalculator
     
     public CalculationResult calculateRECIST(String metric, String unitOfMeasure)
     {
+    	logger.info("CALCULATE RECIST..");
     	CalculationResult calculationResult = new CalculationResult(metric, unitOfMeasure);
     	
         Map<ImageAnnotation, Float> metricValuesByImageAnnotation = calculationResult.getMetricValuesByImageAnnotation();
@@ -238,23 +244,31 @@ public class TumorAnalysisCalculator
         			     responseRatesByStudyDate = calculationResult.getResponseRatesByStudyDate();
     	final Set<String> imageAnnotationNames = new HashSet<String>(); 
         
+    	logger.info("number of date keyset " + imageAnnotationsByStudyDate.size());
         // Calculate the metric sum for each study date
         for(Date studyDate : imageAnnotationsByStudyDate.keySet())
         {
+        	logger.info("study date :" + studyDate);
         	metricSumsByStudyDate.put(studyDate, 0.0f);
+        	logger.info("length of study's array " + imageAnnotationsByStudyDate.get(studyDate).size());
         	
         	for(ImageAnnotation imageAnnotation : imageAnnotationsByStudyDate.get(studyDate))
         	{
         		imageAnnotationNames.add(imageAnnotation.getNameAttribute());
+        		logger.info("Image annotation :" + imageAnnotation.getNameAttribute());
         		
+        		logger.info("Number of Image annotation calculation :" + imageAnnotation.getNumberOfCalculationCollections());
                 for( int k = 0; k < imageAnnotation.getNumberOfCalculationCollections(); k++)
                 {
+                	
                     CalculationCollection calculationCollection = imageAnnotation.getCalculationCollection(k);
 
+                    logger.info("calculation collection : " + calculationCollection.getName());
                     Float metricValue = sumLesionMetricValues(calculationCollection, unitOfMeasure, metric);
                     metricValuesByImageAnnotation.put(imageAnnotation, metricValue);
                     metricSumsByStudyDate.put(studyDate, metricSumsByStudyDate.get(studyDate) + metricValue);
                 }
+                logger.info("Number of Image annotation ENTITY calculation :" + imageAnnotation.getNumberOfCalculationEntityCollections());
                 
                 //System.out.println("WE HAVE THIS MANY CALCULATION ENTITY COLLECTIONS: " + imageAnnotation.getNumberOfCalculationEntityCollections());
                 for( int k = 0; k < imageAnnotation.getNumberOfCalculationEntityCollections(); k++)
@@ -477,19 +491,23 @@ public class TumorAnalysisCalculator
         for( int i = 0; i < calculationCollection.getNumberOfCalculations(); i++ )
         {
             Calculation calculation = calculationCollection.getCalculation(i);
-
             /** Only include calculations that match the metric tag. **/
-
+            
+            logger.info("metric " + metric + " calc desc " + calculation.getDescription());
+            
             if(metric.equalsIgnoreCase(calculation.getDescription()) || metric.equalsIgnoreCase(calculation.getType()))
             {
+            	logger.info("Number of cal results " + calculation.getNumberOfCalculationResultCollections() );
                 for( int j = 0; j < calculation.getNumberOfCalculationResultCollections(); j++ )
                 {
+                	
                     CalculationResultCollection calculationResultCollection = calculation.getCalculationResultCollection(j);
                     for( int k = 0; k < calculationResultCollection.getNumberOfCalculationResults(); k++ )
                     {
                     	edu.stanford.isis.epad.plugin.lesiontracking.shared.CalculationResult calculationResult = calculationResultCollection.getCalculationResult(k);
                         UnitConversion unitConversion = new UnitConversion(calculationResult.getUnitOfMeasure(), targetUnits);
 
+                        logger.info("target units : " + targetUnits + " unit of measure " + calculationResult.getUnitOfMeasure());
                         /**
                          * This is a backwards compatibility check. If we can't find any CalculationDataCollection
                          * objects, we will look for the older type "DataCollection"

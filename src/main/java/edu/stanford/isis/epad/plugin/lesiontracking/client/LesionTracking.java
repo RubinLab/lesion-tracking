@@ -136,18 +136,18 @@ public class LesionTracking implements EntryPoint {
 	public void onPatientNameSelected(String patientID) {
 
 		this.patientID = patientID;
-		
+		GWT.log("Patient id :  " + patientID);
 		trackingServiceAsync.getImageAnnotationsForPatient(projectID,
 				patientID, username, session, server, null,
 				new AsyncCallback<Map<Date, List<ImageAnnotation>>>() {
 					@Override
 					public void onFailure(Throwable caught) {
-						//System.out.println("getImageAnn error: : " + caught.toString());
+						logger.info("getImageAnn error: : " + caught.toString());
 					}
 
 					@Override
 					public void onSuccess(Map<Date, List<ImageAnnotation>> imageAnnotations) {
-						
+						logger.info("Sucess from the call" );
 						logger.info("NUMBER OF IMAGE ANNOTATIONS: " + imageAnnotations.size());
 						
 						LesionTracking.this.imageAnnotations = imageAnnotations;
@@ -162,6 +162,8 @@ public class LesionTracking implements EntryPoint {
 						for (ImageAnnotation ia : imageAnnotations.get(studyDate)) {
 							String uid = ia.getUniqueIdentifier();
 							String name = ia.getNameAttribute();
+							logger.info("Annotation name" + name + " " + ia.getNameAttribute());
+			
 							if (ia.getNumberOfImageReferenceCollections() == 0 && ia.getNumberOfImageReferenceEntityCollections() == 0)
 								continue;
 
@@ -170,6 +172,7 @@ public class LesionTracking implements EntryPoint {
 							if (ia.getNumberOfCalculationCollections() == 0 && ia.getNumberOfCalculationEntityCollections() == 0)
 								continue;
 
+							logger.info("Image Annotations " + ia.getAIMFilename());
 							// Find all of the metrics in this image annotation.
 							
 							if(ia.getNumberOfCalculationCollections() > 0)
@@ -314,13 +317,17 @@ public class LesionTracking implements EntryPoint {
 		if(selectedMetrics.isEmpty())
 			return;
 		String metric = selectedMetrics.get(0);
-		
+		if (patientID != null)
+			GWT.log("The patient id : " + patientID );
+		else
+			GWT.log("The patient id is NULL");
 		trackingServiceAsync.getRECISTHTML(projectID,
 				patientID, username, server, session, metric,
 				new AsyncCallback<String>() {
 
 					@Override
 					public void onFailure(Throwable caught) {
+						GWT.log("Failore with the getRECISTHTML fails");
 						Window.alert(getMessage(caught));
 					}
 

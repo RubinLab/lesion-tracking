@@ -33,6 +33,7 @@ import edu.stanford.isis.epad.plugin.lesiontracking.shared.Study;
 
 public class AIMFileReader
 {
+	static final TempLogger logger = TempLogger.getInstance();
     public static String getStudyDate(ImageReferenceCollection imageReferenceCollection)
     {
         for(int i = 0; i < imageReferenceCollection.getNumberOfImageReferences(); i++)
@@ -149,7 +150,7 @@ public class AIMFileReader
         Element element = (Element)node;
         NamedNodeMap attributesList = element.getAttributes();
         
-        //System.out.println("Getting AIM attribtues for aimElement "  + aimElement.getName());
+        logger.info("Getting AIM attribtues for aimElement "  + aimElement.getName());
 
         String[] allAIMAttributeNames = aimElement.getAllAIMAttributeNames();
         for(int i = 0; i < attributesList.getLength(); i++)

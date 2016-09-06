@@ -60,7 +60,7 @@ public class ImageAnnotationUtility
 
 
                         // This is for the second type.
-                        if(studyDateAndTime.length() == 8)
+                        if(studyDateAndTime.length() == 8 || studyDateAndTime.length() == 14)
                             return dateFormat.parse(studyDateAndTime.substring(0, 4) + "-" + studyDateAndTime.substring(4, 6) + "-" + studyDateAndTime.substring(6, 8));
 
                         return dateFormat.parse(studyDateAndTime);
@@ -87,7 +87,7 @@ public class ImageAnnotationUtility
 
 
                         // This is for the second type.
-                        if(studyDateAndTime.length() == 8)
+                        if(studyDateAndTime.length() == 8 || studyDateAndTime.length() == 14)
                             return dateFormat.parse(studyDateAndTime.substring(0, 4) + "-" + studyDateAndTime.substring(4, 6) + "-" + studyDateAndTime.substring(6, 8));
 
                         return dateFormat.parse(studyDateAndTime);
@@ -160,9 +160,9 @@ public class ImageAnnotationUtility
 
 
                         // This is for the second type.
-                        if(studyDateAndTime.length() == 8)
+                        if(studyDateAndTime.length() == 8 || studyDateAndTime.length() == 14)
                             return dateFormat.parse(studyDateAndTime.substring(0, 4) + "-" + studyDateAndTime.substring(4, 6) + "-" + studyDateAndTime.substring(6, 8));
-
+                        
                         return dateFormat.parse(studyDateAndTime);
                     }
                 }

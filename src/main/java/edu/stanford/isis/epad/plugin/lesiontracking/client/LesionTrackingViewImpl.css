@@ -36,6 +36,7 @@
 .fL {
 	position: relative;
 	float: left;
+	color: black;
 }
 
 .fR {
@@ -46,10 +47,12 @@
 .recistChart {
 	width: 100%;
 	text-align: center;
+	color: black;
 }
 
 .label {
 	line-height: 35px;
+	color: black;
 }
 
 .innerColumnLeft {
@@ -64,11 +67,13 @@
 	width: 76%;
 	padding-left: 2%;
 	padding-right: 2%;
+	color: black;
 }
 
 .innerColumnOfRightColumn {
 	text-align: center;
 	width: 50%;
+	color: black;
 }
 
 .listBox {

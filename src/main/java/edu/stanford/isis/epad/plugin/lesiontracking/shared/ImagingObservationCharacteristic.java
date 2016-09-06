@@ -22,6 +22,7 @@ public class ImagingObservationCharacteristic extends AIMElement
     {
         return (TypeCode)getAllAIMElements().get(TYPE_CODE_INDEX).get(i);
     }
+    
 
 	public String getName()
 	{

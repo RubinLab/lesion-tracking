@@ -42,6 +42,7 @@ public abstract class AIMElement implements IsSerializable
                          PERSON						   = "Person",
                          START_DATE					   = "StartDate",
                          TYPE_CODE					   = "TypeCode",
+                         ISO_DISPLAY_NAME			   = "iso:displayName",
                          CALCULATION_ENTITY			   = "CalculationEntity",
                          CALCULATION_ENTITY_COLLECTION = "CalculationEntityCollection",
                          IMAGING_OBSERVATION_ENTITY_COLLECTION = "ImagingObservationEntityCollection",
@@ -159,6 +160,9 @@ public abstract class AIMElement implements IsSerializable
         
         if(name.equalsIgnoreCase(TYPE_CODE))
         	return new TypeCode();
+        
+        if(name.equalsIgnoreCase(ISO_DISPLAY_NAME))
+        	return new IsoDisplayName();
         
         if(name.equalsIgnoreCase(CALCULATION_ENTITY_COLLECTION))
         	return new CalculationEntityCollection();
