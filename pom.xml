@@ -50,6 +50,9 @@
 			<name>Public online Restlet repository</name>
 			<url>http://maven.restlet.org</url>
 		</repository>
+		
+		
+		
 
 		<!-- Use repository in ${project.basedir}/lib for JARs that can not be 
 			found in public Maven repositories. -->
@@ -73,6 +76,29 @@
 	</repositories>
 
 	<dependencies>
+	
+	 <!-- aimapi  -->
+
+	<dependency>
+	<groupId>edu.stanford.hakan.aim4api</groupId>
+	<artifactId>aimapi</artifactId>
+	<version>${aimapi.version}</version>
+	</dependency>
+				 
+	<dependency>
+	<groupId>edu.stanford.hakan.aim4api</groupId>
+	<artifactId>aimapi</artifactId>
+	<version>${aimapi.version}</version>
+	<classifier>sources</classifier>
+	<scope>compile</scope>
+	</dependency>
+	
+	<dependency> 
+      <groupId>org.w3c.dom</groupId>
+      <artifactId>gwtdom</artifactId>
+      <version>${gwtdom.version}</version>
+    </dependency> 
+	
 		<dependency>
 			<groupId>com.google.gwt</groupId>
 			<artifactId>gwt-user</artifactId>

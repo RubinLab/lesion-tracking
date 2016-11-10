@@ -16,11 +16,9 @@ import com.google.gwt.user.client.ui.RootLayoutPanel;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.Widget;
 
-import edu.stanford.isis.epad.plugin.lesiontracking.shared.CalculationCollection;
-import edu.stanford.isis.epad.plugin.lesiontracking.shared.CalculationEntity;
-import edu.stanford.isis.epad.plugin.lesiontracking.shared.CalculationEntityCollection;
-import edu.stanford.isis.epad.plugin.lesiontracking.shared.Description;
-import edu.stanford.isis.epad.plugin.lesiontracking.shared.ImageAnnotation;
+import edu.stanford.hakan.aim4api.compability.aimv3.CalculationCollection;
+import edu.stanford.hakan.aim4api.project.epad.Aim;
+
 
 public class LesionTracking implements EntryPoint {
 
@@ -32,7 +30,7 @@ public class LesionTracking implements EntryPoint {
 
 	private static final Logger logger = Logger.getLogger("LesionTracking");
 
-	private Map<Date, List<ImageAnnotation>> imageAnnotations;
+	private Map<Date, List<Aim>> imageAnnotations;
 	String username, session, server, projectID, patientID;
 
 	private String recistHTML;
@@ -136,82 +134,84 @@ public class LesionTracking implements EntryPoint {
 	public void onPatientNameSelected(String patientID) {
 
 		this.patientID = patientID;
-		
-		trackingServiceAsync.getImageAnnotationsForPatient(projectID,
+		GWT.log("Patient id :  " + patientID);
+		trackingServiceAsync.getMetricsAndANamesForPatient(projectID,
 				patientID, username, session, server, null,
-				new AsyncCallback<Map<Date, List<ImageAnnotation>>>() {
+				new AsyncCallback<List<List<String>>>() {
 					@Override
 					public void onFailure(Throwable caught) {
-						//System.out.println("getImageAnn error: : " + caught.toString());
+						logger.info("getImageAnn error: : " + caught.toString());
 					}
 
 					@Override
-					public void onSuccess(Map<Date, List<ImageAnnotation>> imageAnnotations) {
+					public void onSuccess(List<List<String>> results) {
+						logger.info("Sucess from the call" );
+//						logger.info("NUMBER OF IMAGE ANNOTATIONS: " + imageAnnotations.size());
 						
-						logger.info("NUMBER OF IMAGE ANNOTATIONS: " + imageAnnotations.size());
-						
-						LesionTracking.this.imageAnnotations = imageAnnotations;
+//						LesionTracking.this.imageAnnotations = imageAnnotations;
 
-						// Extract the unique identifiers and metrics for these
-						// annotations.
-						List<String> annotations = new ArrayList<String>();
-						List<String> metrics = new ArrayList<String>();
+//						// Extract the unique identifiers and metrics for these
+//						// annotations.
+//						List<String> annotations = new ArrayList<String>();
+//						List<String> metrics = new ArrayList<String>();
+//
+//						for(Date studyDate : imageAnnotations.keySet())
+//							
+//						for (Aim ia : imageAnnotations.get(studyDate)) {
+//							String uid = ia.getUniqueIdentifier();
+//							String name = ia.getName();
+//							logger.info("Annotation name" + name + " " +ia.getName());
+//			
+//							if (ia.getImageReferenceCollection().getImageReferenceList().size() == 0 )
+//								continue;
+//
+//							// String date = ImageAnnotationUtility.getStudyDate(ia.getImageReferenceCollection(0)).toString();
+//
+//							if (ia.getCalculationCollection().getCalculationList().size()== 0 && ia.getCalculations().size()==0)
+//								continue;
+//
+//							// Find all of the metrics in this image annotation.
+//							
+//							if(ia.getCalculationCollection().getCalculationList().size() > 0)
+//							{
+//								CalculationCollection calculationCollection = ia.getCalculationCollection();
+//								for (int i = 0; i < calculationCollection.getCalculationList().size(); i++)
+//								{
+//									String metric = calculationCollection.getCalculationList().get(i).getDescription();
+//	
+//									if (metric == null || metric.isEmpty())
+//										metric = calculationCollection.getCalculationList().get(i).getCodeMeaning();
+//	
+//									if (metric != null && !metrics.contains(metric) && !metric.isEmpty())
+//										metrics.add(metric);
+//								}
+//							}
+//							
+////							if(ia.getNumberOfCalculationEntityCollections() > 0)
+////							{
+////								CalculationEntityCollection calculationEntityCollection = ia.getCalculationEntityCollection(0);
+////								for (int i = 0; i < calculationEntityCollection.getNumberOfCalculationEntities(); i++)
+////								{
+////									CalculationEntity calculationEntity = calculationEntityCollection.getCalculationEntity(i);
+////									
+////									if(calculationEntity.getNumberOfDescriptions() > 0)
+////									{
+////										Description description = calculationEntity.getDescription(0);
+////										String metric = description.getValue();
+////										
+////										if (metric != null && !metrics.contains(metric) && !metric.isEmpty())
+////											metrics.add(metric);
+////									}
+////								}
+////							}
+//
+//							// annotations.add("Annotation UID: " + uid +
+//							// " ------ Study Date: " + date);
+//							annotations.add(name);
+//						}
 
-						for(Date studyDate : imageAnnotations.keySet())
-							
-						for (ImageAnnotation ia : imageAnnotations.get(studyDate)) {
-							String uid = ia.getUniqueIdentifier();
-							String name = ia.getNameAttribute();
-							if (ia.getNumberOfImageReferenceCollections() == 0 && ia.getNumberOfImageReferenceEntityCollections() == 0)
-								continue;
-
-							// String date = ImageAnnotationUtility.getStudyDate(ia.getImageReferenceCollection(0)).toString();
-
-							if (ia.getNumberOfCalculationCollections() == 0 && ia.getNumberOfCalculationEntityCollections() == 0)
-								continue;
-
-							// Find all of the metrics in this image annotation.
-							
-							if(ia.getNumberOfCalculationCollections() > 0)
-							{
-								CalculationCollection calculationCollection = ia.getCalculationCollection(0);
-								for (int i = 0; i < calculationCollection.getNumberOfCalculations(); i++)
-								{
-									String metric = calculationCollection.getCalculation(i).getDescription();
-	
-									if (metric == null || metric.isEmpty())
-										metric = calculationCollection.getCalculation(i).getType();
-	
-									if (metric != null && !metrics.contains(metric) && !metric.isEmpty())
-										metrics.add(metric);
-								}
-							}
-							
-							if(ia.getNumberOfCalculationEntityCollections() > 0)
-							{
-								CalculationEntityCollection calculationEntityCollection = ia.getCalculationEntityCollection(0);
-								for (int i = 0; i < calculationEntityCollection.getNumberOfCalculationEntities(); i++)
-								{
-									CalculationEntity calculationEntity = calculationEntityCollection.getCalculationEntity(i);
-									
-									if(calculationEntity.getNumberOfDescriptions() > 0)
-									{
-										Description description = calculationEntity.getDescription(0);
-										String metric = description.getValue();
-										
-										if (metric != null && !metrics.contains(metric) && !metric.isEmpty())
-											metrics.add(metric);
-									}
-								}
-							}
-
-							// annotations.add("Annotation UID: " + uid +
-							// " ------ Study Date: " + date);
-							annotations.add(name);
-						}
-
-						lesionTrackingViewImpl.loadAnnotationsList(annotations);
-						lesionTrackingViewImpl.loadMetricsList(metrics);
+						lesionTrackingViewImpl.loadAnnotationsList(results.get(0));
+						lesionTrackingViewImpl.loadMetricsList(results.get(1));
 					}
 				});
 
@@ -244,18 +244,18 @@ public class LesionTracking implements EntryPoint {
 	/*
 	 * public void onSeriesSelected(String seriesUID) {
 	 * lesionTrackingServiceAsync.getAnnotations(seriesUID, new
-	 * AsyncCallback<List<ImageAnnotation>>() {
+	 * AsyncCallback<List<Aim>>() {
 	 * 
 	 * @Override public void onFailure(Throwable caught){}
 	 * 
-	 * @Override public void onSuccess(List<ImageAnnotation> imageAnnotations) {
+	 * @Override public void onSuccess(List<Aim> imageAnnotations) {
 	 * LesionTracking.this.imageAnnotations = imageAnnotations;
 	 * 
 	 * // Extract the unique identifiers and metrics for these annotations.
 	 * List<String> annotations = new ArrayList<String>(); List<String> metrics
 	 * = new ArrayList<String>();
 	 * 
-	 * for(ImageAnnotation ia : imageAnnotations) { String uid =
+	 * for(Aim ia : imageAnnotations) { String uid =
 	 * ia.getUniqueIdentifier(); String date =
 	 * ImageAnnotationUtility.getStudyDate(ia.getImageReferenceCollection(0));
 	 * 
@@ -314,13 +314,17 @@ public class LesionTracking implements EntryPoint {
 		if(selectedMetrics.isEmpty())
 			return;
 		String metric = selectedMetrics.get(0);
-		
+		if (patientID != null)
+			GWT.log("The patient id : " + patientID );
+		else
+			GWT.log("The patient id is NULL");
 		trackingServiceAsync.getRECISTHTML(projectID,
 				patientID, username, server, session, metric,
 				new AsyncCallback<String>() {
 
 					@Override
 					public void onFailure(Throwable caught) {
+						GWT.log("Failore with the getRECISTHTML fails");
 						Window.alert(getMessage(caught));
 					}
 
@@ -332,7 +336,7 @@ public class LesionTracking implements EntryPoint {
 				});
 
 		/*
-		ImageAnnotation[][] imageAnnotationsByStudyDate = RECISTCalculator
+		Aim[][] imageAnnotationsByStudyDate = RECISTCalculator
 				.loadAndSortAIMFilesByStudyDate(imageAnnotations, server);
 		cr = RECISTCalculator.calculateRECIST(imageAnnotationsByStudyDate,
 				selectedMetrics.toArray(new String[selectedMetrics.size()]),

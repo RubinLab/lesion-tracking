@@ -31,9 +31,10 @@ public class UnitConversion
 		
 		this.conversionFactor = conversionFactor;
 	}
-	public float convertToTargetUnit(float value)
+	public float convertToTargetUnit(double value)
 	{
-		return value * conversionFactor;
+		float keep=(float) (value * conversionFactor);
+		return keep;
 	}
 	
 	public UnitConversion(String sourceUnit, String targetUnit)

@@ -10,12 +10,13 @@ xmlns:m='urn:import:gwtupload.client'>
                 <div class='{style.fL} {style.innerColumnLeft}'>
                     <span class='{style.label}'>Select Patient:</span>
                     <g:ListBox ui:field='patientNamesListBox' styleName='{style.listBox}' visibleItemCount="3"  multipleSelect='false' />
-                    <!-- span class='{style.label}'>List of Annotations:</span>
-                    <g:ListBox ui:field='annotationsListBox' styleName='{style.listBox}' visibleItemCount="3"  multipleSelect='false' enabled='false' /-->
+                    <span class='{style.label}'>List of Annotations:</span>
+                    <g:ListBox ui:field='annotationsListBox' styleName='{style.listBox}' visibleItemCount="3"  multipleSelect='false' enabled='false' />
                     <span class='{style.label}'>Select Metric(s):</span>
                     <g:ListBox ui:field='metricsListBox' styleName='{style.listBox}' visibleItemCount="3"  multipleSelect='true' />
                 	<div class='{style.listBox}' style='padding-top:25px;'>
-            			<g:Button styleName='{style.downloadWordDocumentButton}' ui:field='downloadWordDocumentButton' visible='false'>Download Word Document</g:Button>
+            			<g:Button styleName='{style.downloadWordDocumentButton}' ui:field='downloadWordDocumentButton' visible='false'>
+            			    Download Word Document</g:Button>
             		</div>
                 </div>
                 <div class='{style.fL} {style.innerColumnRight}'>
