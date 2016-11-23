@@ -154,7 +154,7 @@ public class LesionTrackingViewImpl extends Composite {
 	}
 	
 	public void showRECISTHTML(String recistHTML) {
-		downloadWordDocumentButton.setText("Dowload Word document");
+		downloadWordDocumentButton.setText("Download Word document");
 		downloadWordDocumentButton.setVisible(true);
 		
 		recistHTML = recistHTML.replaceAll("<html>", "").replaceAll("</html>", "");
