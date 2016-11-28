@@ -170,8 +170,8 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 		logger.info("Number of image annotations : " + imageAnnotations.size());
 		for (Aim aim : imageAnnotations)
 		{
-//			if (!aim.getCodeValue().equals("RECIST")) //not recist skip
-//				continue;
+			if (!aim.getCodeValue().equals("RECIST")) //not recist skip
+				continue;
 			Date studyDate;
 			
 			studyDate=aim.getFirstStudyDate();
@@ -182,30 +182,35 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 				targetImageAnnotationsByStudyDate.put(studyDate, new ArrayList<Aim>());
 
 			String targetLesionFlag = "";
-			targetLesionFlag = aim.getImagingObservationCollection().getImagingObservationList().get(0).getImagingObservationCharacteristicCollection().getImagingObservationCharacteristicList().get(0).getCodeMeaning();
-			if (targetLesionFlag ==null || targetLesionFlag.equals(""))
-				targetLesionFlag = aim.getImagingObservationCollection().getImagingObservationList().get(0).getImagingObservationCharacteristicCollection().getImagingObservationCharacteristicList().get(0).getCodingSchemeDesignator();
-			
-			if (targetLesionFlag ==null || targetLesionFlag.equals(""))
-				targetLesionFlag = aim.getImagingObservationCollection().getImagingObservationList().get(0).getImagingObservationCharacteristicCollection().getImagingObservationCharacteristicList().get(0).getAllowedTerm().getCodeMeaning();
-			
-			logger.info("targetLesionFlag "+targetLesionFlag);
-			
-			//logger.info("TARGET LESION STRING: " + targetLesionFlag);
-			logger.info("image annotation :" + aim.getName());
-			
-			if(isNonTarget == null) {
-				logger.info("TARGET flag is null" + " Study date" + studyDate);
-				targetImageAnnotationsByStudyDate.get(studyDate).add(aim);
+			if (!aim.getImagingObservationCollection().getImagingObservationList().isEmpty()){
+				targetLesionFlag = aim.getImagingObservationCollection().getImagingObservationList().get(0).getImagingObservationCharacteristicCollection().getImagingObservationCharacteristicList().get(0).getCodeMeaning();
+				if (targetLesionFlag ==null || targetLesionFlag.equals(""))
+					targetLesionFlag = aim.getImagingObservationCollection().getImagingObservationList().get(0).getImagingObservationCharacteristicCollection().getImagingObservationCharacteristicList().get(0).getCodingSchemeDesignator();
+				
+				if (targetLesionFlag ==null || targetLesionFlag.equals(""))
+					targetLesionFlag = aim.getImagingObservationCollection().getImagingObservationList().get(0).getImagingObservationCharacteristicCollection().getImagingObservationCharacteristicList().get(0).getAllowedTerm().getCodeMeaning();
+				
+				logger.info("targetLesionFlag "+targetLesionFlag);
+				
+				//logger.info("TARGET LESION STRING: " + targetLesionFlag);
+				logger.info("image annotation :" + aim.getName());
+				
+				if(isNonTarget == null) {
+					logger.info("TARGET flag is null" + " Study date" + studyDate);
+					targetImageAnnotationsByStudyDate.get(studyDate).add(aim);
+				}
+				else
+				{
+					logger.info("TARGET flag is not null");
+					String targetString = targetLesionFlag.toLowerCase();
+					if(isNonTarget && targetString.contains("non-target"))
+						targetImageAnnotationsByStudyDate.get(studyDate).add(aim);
+					else if(!isNonTarget && !targetString.contains("non-target") && targetString.contains("target"))
+						targetImageAnnotationsByStudyDate.get(studyDate).add(aim);
+				}
 			}
-			else
-			{
-				logger.info("TARGET flag is not null");
-				String targetString = targetLesionFlag.toLowerCase();
-				if(isNonTarget && targetString.contains("non-target"))
-					targetImageAnnotationsByStudyDate.get(studyDate).add(aim);
-				else if(!isNonTarget && !targetString.contains("non-target") && targetString.contains("target"))
-					targetImageAnnotationsByStudyDate.get(studyDate).add(aim);
+			else {
+				logger.info("No targetLesionFlag for aim " + aim.getName());
 			}
 //			aim.outputAIMHeirarchy(2);
 //			logger.info("GET from the map: ----");
