@@ -142,6 +142,7 @@ public class LesionTrackingViewImpl extends Composite {
 	public void loadMetricsList(List<String> metrics) {
 		
 		GWT.log("Metric size: "+ metrics.size());
+		GWT.log("Activating  metrics");
 		metricsListBox.clear();
 		for (String metric : metrics)
 			metricsListBox.addItem(metric);
@@ -154,7 +155,7 @@ public class LesionTrackingViewImpl extends Composite {
 	}
 	
 	public void showRECISTHTML(String recistHTML) {
-		downloadWordDocumentButton.setText("Dowload Word document");
+		downloadWordDocumentButton.setText("Download Word document");
 		downloadWordDocumentButton.setVisible(true);
 		
 		recistHTML = recistHTML.replaceAll("<html>", "").replaceAll("</html>", "");
