@@ -383,7 +383,7 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
         logger.info("Setting up Velocity context.");
         VelocityContext context = new VelocityContext();
         context.put("df", df); // Decimal formatter.
-        context.put("sdf", sdf); // Date formatter.
+        //context.put("sdf", sdf); // Date formatter.
         context.put("TARGET_LESIONS", TARGET_LESIONS);
         context.put("NON_TARGET_LESIONS", NON_TARGET_LESIONS);
         

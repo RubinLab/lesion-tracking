@@ -42,6 +42,7 @@
 .fR {
 	position: relative;
 	float: right;
+	color: black;
 }
 
 .recistChart {
