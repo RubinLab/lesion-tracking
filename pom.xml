@@ -21,7 +21,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<!-- Conflict with 2.6.1 -->
-		<gwt.version>2.5.1</gwt.version>
+		<gwt.version>2.6.1</gwt.version>
 
 		<!-- GWT needs at least java 1.5 -->
 		<maven.compiler.source>1.7</maven.compiler.source>
