@@ -8,6 +8,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
+import edu.stanford.hakan.aim4api.compability.aimv3.ImageAnnotation;
 import edu.stanford.hakan.aim4api.project.epad.Aim;
 
 
@@ -21,7 +22,7 @@ public interface TrackingService extends RemoteService {
 			String projectID, String patientID, String username,
 			String session, String server, Boolean isNonTarget) throws Exception;
 	
-	public  Map<Date, List<Aim>> getImageAnnotationsForPatient(
+	public  Map<Date, List<ImageAnnotation>> getImageAnnotationsForPatient(
 			String projectID, String patientID, String username,
 			String session, String server, Boolean isNonTarget) throws Exception;
 	
