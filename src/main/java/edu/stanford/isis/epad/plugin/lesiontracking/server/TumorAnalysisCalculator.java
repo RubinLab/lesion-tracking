@@ -20,12 +20,14 @@ import edu.stanford.hakan.aim4api.compability.aimv3.CalculationData;
 import edu.stanford.hakan.aim4api.compability.aimv3.CalculationDataCollection;
 import edu.stanford.hakan.aim4api.compability.aimv3.CalculationResult;
 import edu.stanford.hakan.aim4api.compability.aimv3.CalculationResultCollection;
+import edu.stanford.hakan.aim4api.compability.aimv3.ImageAnnotation;
 import edu.stanford.hakan.aim4api.project.epad.Aim;
+
 
 
 public class TumorAnalysisCalculator
 {
-    private Map<Date, List<Aim>> imageAnnotationsByStudyDate;
+    private Map<Date, List<ImageAnnotation>> imageAnnotationsByStudyDate;
     static final TempLogger logger = TempLogger.getInstance();
 
     
@@ -38,9 +40,9 @@ public class TumorAnalysisCalculator
                 PARTIAL_RESPONSE    = "PR",
                 STABLE_DISEASE	    = "SD",
                 PROGRESSIVE_DISEASE = "PD";
-        private Map<Date, Map<String, Aim>> imageAnnotationsByNameAndStudyDate;
-        private Map<Aim, Float> metricValuesByImageAnnotation = new HashMap<Aim, Float>();
-        private Map<Aim, String> anatomicEntitiesByImageAnnotation = new HashMap<Aim, String>();
+        private Map<Date, Map<String, ImageAnnotation>> imageAnnotationsByNameAndStudyDate;
+        private Map<ImageAnnotation, Float> metricValuesByImageAnnotation = new HashMap<ImageAnnotation, Float>();
+        private Map<ImageAnnotation, String> anatomicEntitiesByImageAnnotation = new HashMap<ImageAnnotation, String>();
         private List<String> sortedImageAnnotationNames = new ArrayList<String>();
         private Map<String, String> anatomicEntityNamesByImageAnnotationName = new HashMap<String, String>();
         private List<Date> sortedStudyDates = new ArrayList<Date>();
@@ -126,10 +128,10 @@ public class TumorAnalysisCalculator
 				
 				for(Date studyDate : sortedStudyDates)
 				{
-					Map<String, Aim> imageAnnotationsByName = getImageAnnotationsByNameAndStudyDate().get(studyDate);
+					Map<String, ImageAnnotation> imageAnnotationsByName = getImageAnnotationsByNameAndStudyDate().get(studyDate);
 					if(imageAnnotationsByName.containsKey(imageAnnotationName))
 					{
-						Aim imageAnnotation = imageAnnotationsByName.get(imageAnnotationName);
+						ImageAnnotation imageAnnotation = imageAnnotationsByName.get(imageAnnotationName);
 						Float metricValue = metricValuesByImageAnnotation.get(imageAnnotation);
 						if(metricValue != null)
 							sb.append(fillToNLength(35, metricValue.toString()));
@@ -170,21 +172,21 @@ public class TumorAnalysisCalculator
 			this.sortedImageAnnotationNames = sortedImageAnnotationNames;
 		}
 
-		public Map<Aim, Float> getMetricValuesByImageAnnotation() {
+		public Map<ImageAnnotation, Float> getMetricValuesByImageAnnotation() {
 			return metricValuesByImageAnnotation;
 		}
 
 		public void setMetricValuesByImageAnnotation(
-				Map<Aim, Float> metricValuesByImageAnnotation) {
+				Map<ImageAnnotation, Float> metricValuesByImageAnnotation) {
 			this.metricValuesByImageAnnotation = metricValuesByImageAnnotation;
 		}
 
-		public Map<Aim, String> getAnatomicEntitiesByImageAnnotation() {
+		public Map<ImageAnnotation, String> getAnatomicEntitiesByImageAnnotation() {
 			return anatomicEntitiesByImageAnnotation;
 		}
 
 		public void setAnatomicEntitiesByImageAnnotation(
-				Map<Aim, String> anatomicEntitiesByImageAnnotation) {
+				Map<ImageAnnotation, String> anatomicEntitiesByImageAnnotation) {
 			this.anatomicEntitiesByImageAnnotation = anatomicEntitiesByImageAnnotation;
 		}
 
@@ -196,12 +198,12 @@ public class TumorAnalysisCalculator
 			this.metricSumsByStudyDate = metricSumsByStudyDate;
 		}
 
-		public Map<Date, Map<String, Aim>> getImageAnnotationsByNameAndStudyDate() {
+		public Map<Date, Map<String, ImageAnnotation>> getImageAnnotationsByNameAndStudyDate() {
 			return imageAnnotationsByNameAndStudyDate;
 		}
 
 		public void setImageAnnotationsByNameAndStudyDate(
-				Map<Date, Map<String, Aim>> imageAnnotationsByNameAndStudyDate) {
+				Map<Date, Map<String, ImageAnnotation>> imageAnnotationsByNameAndStudyDate) {
 			this.imageAnnotationsByNameAndStudyDate = imageAnnotationsByNameAndStudyDate;
 		}
 
@@ -224,7 +226,7 @@ public class TumorAnalysisCalculator
 		}
     }
     
-    public TumorAnalysisCalculator(Map<Date, List<Aim>> imageAnnotationsByStudyDate)
+    public TumorAnalysisCalculator(Map<Date, List<ImageAnnotation>> imageAnnotationsByStudyDate)
     {
         this.imageAnnotationsByStudyDate = imageAnnotationsByStudyDate;
     }
@@ -234,8 +236,8 @@ public class TumorAnalysisCalculator
     	logger.info("CALCULATE RECIST..");
     	CalculationResultL calculationResult = new CalculationResultL(metric, unitOfMeasure);
     	
-        Map<Aim, Float> metricValuesByImageAnnotation = calculationResult.getMetricValuesByImageAnnotation();
-        Map<Aim, String> anatomicEntitiesByImageAnnotation = calculationResult.getAnatomicEntitiesByImageAnnotation(); 
+        Map<ImageAnnotation, Float> metricValuesByImageAnnotation = calculationResult.getMetricValuesByImageAnnotation();
+        Map<ImageAnnotation, String> anatomicEntitiesByImageAnnotation = calculationResult.getAnatomicEntitiesByImageAnnotation(); 
         Map<String, String> anatomicEntityNamesByImageAnnotationName = calculationResult.getAnatomicEntityNamesByImageAnnotationName();
         Map<Date, Float> metricSumsByStudyDate = calculationResult.getMetricSumsByStudyDate(),
         			     responseRatesByStudyDate = calculationResult.getResponseRatesByStudyDate();
@@ -249,7 +251,7 @@ public class TumorAnalysisCalculator
         	metricSumsByStudyDate.put(studyDate, 0.0f);
         	logger.info("length of study's array " + imageAnnotationsByStudyDate.get(studyDate).size());
         	
-        	for(Aim imageAnnotation : imageAnnotationsByStudyDate.get(studyDate))
+        	for(ImageAnnotation imageAnnotation : imageAnnotationsByStudyDate.get(studyDate))
         	{
         		imageAnnotationNames.add(imageAnnotation.getName());
         		logger.info("Image annotation :" + imageAnnotation.getName());
@@ -344,9 +346,9 @@ public class TumorAnalysisCalculator
         	// Verify that all lesions present in the baseline are present at this study date.
         	boolean missingOne = false;
         	Set<String> currentStudyDateImageAnnotationNames = new HashSet<String>();
-        	for(Aim imageAnnotation : imageAnnotationsByStudyDate.get(studyDate))
+        	for(ImageAnnotation imageAnnotation : imageAnnotationsByStudyDate.get(studyDate))
         		currentStudyDateImageAnnotationNames.add(imageAnnotation.getName());
-        	for(Aim imageAnnotation : imageAnnotationsByStudyDate.get(baselineStudyDate))
+        	for(ImageAnnotation imageAnnotation : imageAnnotationsByStudyDate.get(baselineStudyDate))
         		if(!currentStudyDateImageAnnotationNames.contains(imageAnnotation.getName()))
         		{
         			missingOne = true;
@@ -386,17 +388,17 @@ public class TumorAnalysisCalculator
         calculationResult.setSortedImageAnnotationNames(asSortedListWithComparator(imageAnnotationNames, new NaturalOrderComparator()));
 
         // Create a map that groups lesion by their names and study dates.
-        calculationResult.setImageAnnotationsByNameAndStudyDate(new HashMap<Date, Map<String, Aim>>());
-        Map<Date, Map<String, Aim>> imageAnnotationsByNameAndStudyDate = calculationResult.getImageAnnotationsByNameAndStudyDate();
+        calculationResult.setImageAnnotationsByNameAndStudyDate(new HashMap<Date, Map<String, ImageAnnotation>>());
+        Map<Date, Map<String, ImageAnnotation>> imageAnnotationsByNameAndStudyDate = calculationResult.getImageAnnotationsByNameAndStudyDate();
 		
         for(Date studyDate : sortedStudyDates)
         {
         	if(!imageAnnotationsByNameAndStudyDate.containsKey(studyDate))
-        		imageAnnotationsByNameAndStudyDate.put(studyDate, new HashMap<String, Aim>());
+        		imageAnnotationsByNameAndStudyDate.put(studyDate, new HashMap<String, ImageAnnotation>());
         	
-        	for(Aim imageAnnotation : imageAnnotationsByStudyDate.get(studyDate))
+        	for(ImageAnnotation imageAnnotation : imageAnnotationsByStudyDate.get(studyDate))
         	{
-        		Map<String, Aim> imageAnnotationsByName= imageAnnotationsByNameAndStudyDate.get(studyDate);
+        		Map<String, ImageAnnotation> imageAnnotationsByName= imageAnnotationsByNameAndStudyDate.get(studyDate);
         		String imageAnnotationName = imageAnnotation.getName();
         		if(!imageAnnotationsByName.containsKey(imageAnnotationName) || metricValuesByImageAnnotation.get(imageAnnotationsByName.get(imageAnnotationName)) == null)
         			imageAnnotationsByName.put(imageAnnotationName, imageAnnotation);

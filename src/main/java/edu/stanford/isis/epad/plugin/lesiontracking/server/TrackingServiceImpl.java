@@ -57,8 +57,12 @@ import edu.stanford.isis.epad.plugin.lesiontracking.server.TumorAnalysisCalculat
 import edu.stanford.hakan.aim4api.base.AimException;
 import edu.stanford.hakan.aim4api.base.ImageAnnotationCollection;
 import edu.stanford.hakan.aim4api.compability.aimv3.CalculationCollection;
-//import edu.stanford.hakan.aim4api.compability.aimv3.Aim;
-import edu.stanford.hakan.aim4api.project.epad.Aim;
+import edu.stanford.hakan.aim4api.compability.aimv3.DICOMImageReference;
+//import edu.stanford.hakan.aim4api.compability.aimv3.ImageAnnotation;
+//import edu.stanford.hakan.aim4api.project.epad.ImageAnnotation;
+import edu.stanford.hakan.aim4api.compability.aimv3.ImageAnnotation;
+import edu.stanford.hakan.aim4api.compability.aimv3.ImageReference;
+import edu.stanford.hakan.aim4api.compability.aimv3.ImageStudy;
 import edu.stanford.hakan.aim4api.usage.AnnotationGetter;
 
 public class TrackingServiceImpl extends RemoteServiceServlet implements
@@ -75,7 +79,7 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 	}
 	private static final long serialVersionUID = 1830906991196368571L;
 	public static final String LIST = "list", VALUES = "value",
-			PERSON = "Person", IMAGE_ANNOTATION = "Aim";
+			PERSON = "Person", IMAGE_ANNOTATION = "ImageAnnotation";
 	private DefaultHttpClient client;
 
 	static final TempLogger logger = TempLogger.getInstance();
@@ -146,6 +150,51 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 		return result;
 	}
 	
+	public static Date getFirstStudyDate(ImageAnnotation aim) {
+		
+		        try {
+		            List<ImageReference> imageList = aim.getImageReferenceCollection()
+		                    .getImageReferenceList();
+		
+		            ImageReference imageReference = imageList.get(0);
+		            DICOMImageReference dicomImageReference = (DICOMImageReference) imageReference;
+		            ImageStudy study = dicomImageReference.getImageStudy();
+		            String strStartDate = study.getStartDate();
+		            
+		            
+		            try {
+		            	int year ;
+		                int month ;
+		                int day;
+		                //ml dateformat change
+		            	if (strStartDate.contains("-")) {
+		    				
+			                year = Integer.parseInt(strStartDate.substring(0, 4));
+			                month = Integer.parseInt(strStartDate.substring(5, 7));
+			                day = Integer.parseInt(strStartDate.substring(8, 10));
+		            	}
+		            	else {
+		            		year = Integer.parseInt(strStartDate.substring(0, 4));
+			                month = Integer.parseInt(strStartDate.substring(4, 6));
+			                day = Integer.parseInt(strStartDate.substring(6, 8));
+		            	}
+		                System.out.println(year + " " + month + " " + day);
+		                Date date = new Date(year, month - 1, day);
+		                return date;
+		            	
+		            } catch (NumberFormatException ex) {
+		                throw new AimException("Dateformat of the ImageStudy must be started with 'yyyy-MM-dd'");
+		            }
+		
+		        } catch (Exception e) {
+		
+		            logger.info("Error: aimApi.getStudyDate " + e.getMessage());
+		
+		        }
+		
+		        return null;
+		    }
+	
 	/**
 	 * @param result
 	 * @param isNonTarget
@@ -154,11 +203,11 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 	 * @throws IOException
 	 * @throws ParserConfigurationException
 	 */
-	public static Map<Date, List<Aim>> parseXMLStringForImageAnnotations(String result, Boolean isNonTarget) throws SAXException, IOException, ParserConfigurationException
+	public static Map<Date, List<ImageAnnotation>> parseXMLStringForImageAnnotations(String result, Boolean isNonTarget) throws SAXException, IOException, ParserConfigurationException
 	{
 		
 
-		List<Aim> imageAnnotations=new ArrayList<Aim>(); 
+		List<ImageAnnotation> imageAnnotations=new ArrayList<ImageAnnotation>(); 
 		
 		try {
 			imageAnnotations = parseAnnotations(result);
@@ -166,20 +215,20 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 			logger.warning("Couldn't parse annotation : " + e.getMessage(),e);
 		}
 
-		Map<Date, List<Aim>> targetImageAnnotationsByStudyDate = new HashMap<Date, List<Aim>>();
+		Map<Date, List<ImageAnnotation>> targetImageAnnotationsByStudyDate = new HashMap<Date, List<ImageAnnotation>>();
 		logger.info("Number of image annotations : " + imageAnnotations.size());
-		for (Aim aim : imageAnnotations)
+		for (ImageAnnotation aim : imageAnnotations)
 		{
 			if (!aim.getCodeValue().equals("RECIST")) //not recist skip
 				continue;
 			Date studyDate;
 			
-			studyDate=aim.getFirstStudyDate();
+			studyDate=getFirstStudyDate(aim);
 			logger.info("Got studyDate from ImageReferenceCollection: " + studyDate);
 								
 			
 			if(!targetImageAnnotationsByStudyDate.containsKey(studyDate))
-				targetImageAnnotationsByStudyDate.put(studyDate, new ArrayList<Aim>());
+				targetImageAnnotationsByStudyDate.put(studyDate, new ArrayList<ImageAnnotation>());
 
 			String targetLesionFlag = "";
 			if (!aim.getImagingObservationCollection().getImagingObservationList().isEmpty()){
@@ -214,7 +263,7 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 			}
 //			aim.outputAIMHeirarchy(2);
 //			logger.info("GET from the map: ----");
-//			Aim ia = targetImageAnnotationsByStudyDate.get(studyDate).get(0);
+//			ImageAnnotation ia = targetImageAnnotationsByStudyDate.get(studyDate).get(0);
 //			ia.outputAIMHeirarchy(2);
 		}
 		
@@ -223,9 +272,9 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 		return targetImageAnnotationsByStudyDate;
 	}
 	
-	private static List<Aim> parseAnnotations(String text) throws AimException {
+	private static List<ImageAnnotation> parseAnnotations(String text) throws AimException {
 
-		List<Aim> aims = new ArrayList<Aim>();
+		List<ImageAnnotation> aims = new ArrayList<ImageAnnotation>();
 		List<ImageAnnotationCollection> imageAnnotationCollections = new ArrayList<ImageAnnotationCollection>();
 
 		imageAnnotationCollections = AnnotationGetter
@@ -233,7 +282,7 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 
 		// convert them to Aims
 		for (ImageAnnotationCollection iac : imageAnnotationCollections) {
-			aims.add(new Aim(new edu.stanford.hakan.aim4api.compability.aimv3.ImageAnnotation(iac)));
+			aims.add(new edu.stanford.hakan.aim4api.compability.aimv3.ImageAnnotation(iac));
 		}
 
 		return aims;
@@ -242,7 +291,7 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 	public List<List<String>> getMetricsAndANamesForPatient(
 			String projectID, String patientID, String username,
 			String session, String server, Boolean isNonTarget) throws Exception {
-		Map<Date, List<Aim>> imageAnnotations = getImageAnnotationsForPatient(projectID, patientID, username, session, server, isNonTarget);
+		Map<Date, List<ImageAnnotation>> imageAnnotations = getImageAnnotationsForPatient(projectID, patientID, username, session, server, isNonTarget);
 		// Extract the unique identifiers and metrics for these
 		// annotations.
 		List<String> annotations = new ArrayList<String>();
@@ -250,7 +299,7 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 
 		for(Date studyDate : imageAnnotations.keySet())
 			
-		for (Aim ia : imageAnnotations.get(studyDate)) {
+		for (ImageAnnotation ia : imageAnnotations.get(studyDate)) {
 			String uid = ia.getUniqueIdentifier();
 			String name = ia.getName();
 			logger.info("Annotation name" + name + " " +ia.getName());
@@ -261,7 +310,7 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 			// String date = ImageAnnotationUtility.getStudyDate(ia.getImageReferenceCollection(0)).toString();
 			logger.info("calculations size:"+ia.getCalculationCollection().getCalculationList().size());
 			
-			if (ia.getCalculationCollection().getCalculationList().size()== 0 && ia.getCalculations().size()==0)
+			if (ia.getCalculationCollection().getCalculationList().size()== 0 && ia.getCalculationCollection().getCalculationList().size()==0)
 				continue;
 
 			// Find all of the metrics in this image annotation.
@@ -312,7 +361,7 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 	
 	
 
-	public Map<Date, List<Aim>> getImageAnnotationsForPatient(
+	public Map<Date, List<ImageAnnotation>> getImageAnnotationsForPatient(
 			String projectID, String patientID, String username,
 			String session, String server, Boolean isNonTarget) throws Exception {
 
@@ -467,15 +516,15 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 		//trackingServiceImpl.getRECISTHTML("RECIST", "7", "admin", "http://epad-public.stanford.edu:8080", "FD18E22C7A2A98C2446453D397C6F803", "LineLength");
 		
 		String result = readFile("image_annotations.xml", Charset.defaultCharset());
-		Map<Date, List<Aim>> targetImageAnnotationsByStudyDate = trackingServiceImpl.parseXMLStringForImageAnnotations(result, false);
-		trackingServiceImpl.getRECISTHTML(targetImageAnnotationsByStudyDate, new HashMap<Date, List<Aim>>(), "linelength", "Aaron");
+		Map<Date, List<ImageAnnotation>> targetImageAnnotationsByStudyDate = trackingServiceImpl.parseXMLStringForImageAnnotations(result, false);
+		trackingServiceImpl.getRECISTHTML(targetImageAnnotationsByStudyDate, new HashMap<Date, List<ImageAnnotation>>(), "linelength", "Aaron");
 		
 		//System.out.println(targetImageAnnotationsByStudyDate.size());
 	}
 
 	
-	private String getRECISTHTML(Map<Date,List<Aim>> targetImageAnnotationsByStudyDate,
-										Map<Date,List<Aim>> nonTargetImageAnnotationsByStudyDate,
+	private String getRECISTHTML(Map<Date,List<ImageAnnotation>> targetImageAnnotationsByStudyDate,
+										Map<Date,List<ImageAnnotation>> nonTargetImageAnnotationsByStudyDate,
 										String selectedMetric, String patientID)
 	{
 		GWT.log("In the getRECISTHTML from the tracking service");
@@ -503,7 +552,7 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 								String server, String session, String selectedMetric) throws Exception
 	{
 		/*
-    	Map<Date, List<Aim>> imageAnnotationsByStudyDate = getImageAnnotationsForPatient(null);
+    	Map<Date, List<ImageAnnotation>> imageAnnotationsByStudyDate = getImageAnnotationsForPatient(null);
     	
 		String username  = "admin",
 			   projectID = "f",
@@ -516,8 +565,8 @@ public class TrackingServiceImpl extends RemoteServiceServlet implements
 		
 		getPatientNames(projectID, username, session, server);
 
-		Map<Date,List<Aim>> targetImageAnnotationsByStudyDate = getImageAnnotationsForPatient(projectID, patientID, username, session, server, false);
-		Map<Date,List<Aim>> nonTargetImageAnnotationsByStudyDate = getImageAnnotationsForPatient(projectID, patientID, username, session, server, true);
+		Map<Date,List<ImageAnnotation>> targetImageAnnotationsByStudyDate = getImageAnnotationsForPatient(projectID, patientID, username, session, server, false);
+		Map<Date,List<ImageAnnotation>> nonTargetImageAnnotationsByStudyDate = getImageAnnotationsForPatient(projectID, patientID, username, session, server, true);
 		
 		return getRECISTHTML(targetImageAnnotationsByStudyDate, nonTargetImageAnnotationsByStudyDate, selectedMetric, patientID);
 	}
