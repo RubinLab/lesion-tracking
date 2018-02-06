@@ -8,6 +8,10 @@
 .classpath
 .pydevproject
 
+#Ignore Intellij files
+*.iml
+.idea
+
 # Exclude build directory
 target/*
 .
@@ -27,5 +31,5 @@ lesiontracking/*
 
 .DS_Store
 
-*.pyc 
+*.pyc
 /bin
